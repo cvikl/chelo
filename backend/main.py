@@ -29,12 +29,12 @@ from schemas import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("AlpineCheck API starting up...")
+    print("Triglav API starting up...")
     yield
     print("Shutting down.")
 
 
-app = FastAPI(title="AlpineCheck", lifespan=lifespan)
+app = FastAPI(title="Triglav", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

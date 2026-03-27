@@ -56,7 +56,7 @@ async def geocode(location_name: str) -> dict:
                 "limit": 1,
                 "addressdetails": 1,
             },
-            headers={"User-Agent": "AlpineCheck-Hackathon/1.0"},
+            headers={"User-Agent": "Triglav-Hackathon/1.0"},
         )
         results = response.json()
 
@@ -69,7 +69,7 @@ async def geocode(location_name: str) -> dict:
                     "format": "json",
                     "limit": 1,
                 },
-                headers={"User-Agent": "AlpineCheck-Hackathon/1.0"},
+                headers={"User-Agent": "Triglav-Hackathon/1.0"},
             )
             results = response.json()
 

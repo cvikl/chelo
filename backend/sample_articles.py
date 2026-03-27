@@ -1,4 +1,4 @@
-"""Sample articles for testing the AlpineCheck pipeline."""
+"""Sample articles for testing the Triglav pipeline."""
 
 # A deliberately misleading article that makes verifiable false claims
 # across all 5 parameters: snow, glaciers, temperature, precipitation, vegetation

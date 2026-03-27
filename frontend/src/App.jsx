@@ -57,7 +57,7 @@ export default function App() {
     <div className={`app ${activeVerdict ? "has-sidebar" : ""}`}>
       <div className="main-column">
         <header className="app-header">
-          <h1>AlpineCheck</h1>
+          <h1>Triglav</h1>
           <p>AI-powered fact-checking for Alpine climate claims using satellite data</p>
         </header>
 

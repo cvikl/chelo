@@ -1,8 +1,8 @@
-# AlpineCheck - AI-Powered Climate Fact-Checking for the Alps
+# Triglav - AI-Powered Climate Fact-Checking for the Alps
 
 ## Project Overview
 
-AlpineCheck is a fact-checking system that uses satellite data and AI to verify climate claims about the Alpine region. Built for the SpaceHACK for Sustainability 2026 hackathon (Track: Climate Disinformation and the Alps), it combines LLM-based claim extraction, real satellite imagery, ground station data, and deep learning glacier segmentation to produce evidence-based verdicts on climate articles.
+Triglav is a fact-checking system that uses satellite data and AI to verify climate claims about the Alpine region. Built for the SpaceHACK for Sustainability 2026 hackathon (Track: Climate Disinformation and the Alps), it combines LLM-based claim extraction, real satellite imagery, ground station data, and deep learning glacier segmentation to produce evidence-based verdicts on climate articles.
 
 The system takes a news article as input, extracts verifiable climate claims, fetches real satellite and ground data for the referenced location and time period, and produces visual, data-backed verdicts highlighting misleading or verified statements.
 
