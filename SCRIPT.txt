@@ -1,0 +1,167 @@
+TRIGLAV — VIDEO SCRIPT (5 minutes)
+====================================
+
+Style: Fast-paced, TikTok/YouTube energy. Cuts every 3-5 seconds.
+Music: Lo-fi or upbeat electronic underneath throughout.
+
+
+---
+[0:00 - 0:30] HOOK + INTRO (Filmed outside, mountains in background)
+---
+
+PERSON ON CAMERA (walking toward camera, energetic):
+"What if I told you that half the climate articles you read about the Alps... are wrong?"
+
+*quick cut*
+
+"Some say glaciers are fine. Some say snow hasn't changed. Some even say the Alps aren't warming."
+
+*cut to dramatic mountain shot*
+
+"But what does the actual satellite data say?"
+
+*cut back to person*
+
+"We built a tool that takes any climate article, pulls REAL satellite imagery, runs it through AI... and tells you exactly what's true and what's not."
+
+"This is Triglav."
+
+*TITLE CARD: TRIGLAV - Alpine Climate Fact-Checker*
+
+
+---
+[0:30 - 1:15] THE PROBLEM (Voiceover + screen recording of articles/headlines)
+---
+
+VOICEOVER (show scrolling through climate skeptic headlines):
+"Climate misinformation about the Alps is everywhere. Articles claiming glaciers are stable. Blog posts saying snow cover hasn't changed. Opinion pieces denying any warming."
+
+"The data to debunk these claims exists — satellite imagery, weather stations, glacier models — but it's scattered across dozens of databases and takes expertise to interpret."
+
+"So we asked: what if we could automate the fact-checking? What if an AI could read an article, figure out what claims it makes, fetch the actual satellite data, and compare them — in seconds?"
+
+
+---
+[1:15 - 2:00] HOW IT WORKS (Voiceover + architecture diagram or animation)
+---
+
+VOICEOVER (show simple flow diagram):
+"Here's how Triglav works."
+
+"Step one: you paste a climate article. Our orchestrator — powered by a large language model — reads it and extracts every verifiable claim. Location, time period, what the article says about temperature, snow, glaciers, vegetation."
+
+"Step two: we dispatch five specialized agents in parallel. Each one fetches REAL data."
+
+(show each agent briefly)
+"Temperature and precipitation — real weather data from ERA5, going back to 1940."
+"Snow cover — actual snow depth records plus Sentinel-2 satellite snow maps."
+"Glacier extent — we fetch real Sentinel-2 satellite tiles and run them through a deep learning segmentation model trained on Alpine glaciers."
+"Vegetation — real NDVI satellite imagery plus vegetation line analysis using elevation data."
+
+"Step three: we compare what the article claims versus what the data actually shows. And we give a verdict: verified, warning, or misleading."
+
+
+---
+[2:00 - 3:30] LIVE DEMO (Screen recording of the product)
+---
+
+VOICEOVER (show the actual app):
+"Let me show you."
+
+*click "Aletsch Tourism Review" button*
+
+"Here's an article about the Aletsch Glacier region. It makes claims about temperature, snow, glaciers, and vegetation. Let's see what's real."
+
+*show progress bar + Greta game briefly*
+
+"While our agents are fetching real satellite data... you can play a little game."
+
+*results load, show annotated article*
+
+"And here are the results. See how the article is highlighted? Red means the claim is misleading. Yellow is a warning. Green means verified."
+
+*click a red highlight*
+
+"This claim says vegetation hasn't changed. But look — real Sentinel-2 NDVI data shows an 11 percent increase in greening since 2017. The satellite images are right here. You can see the difference."
+
+*click another highlight*
+
+"This one says temperatures haven't risen. But ERA5 data shows warming of nearly 2 degrees per decade. Here's the actual graph — every dot is a real temperature measurement."
+
+*scroll to show the map and verdict summary*
+
+"And down here you can see the full breakdown. Four claims flagged as misleading, backed by real satellite evidence."
+
+
+---
+[3:30 - 4:15] THE TECH (Voiceover + quick cuts of code/data)
+---
+
+VOICEOVER (show brief flashes of code, satellite tiles, model output):
+"Under the hood, this is all real data. No mock-ups."
+
+"We pull Sentinel-2 satellite imagery from Element84's Earth Search — completely free, no authentication needed."
+
+"For glaciers, we use a trained UNet segmentation model with a Jaccard score of 0.89, running on 16-channel inputs — 13 spectral bands plus elevation, slope, and elevation change data."
+
+"Temperature and precipitation come from the Open-Meteo ERA5 reanalysis archive — weather data going back to 1940."
+
+"We even integrated Google Earth Engine for land surface temperature visualization."
+
+"Every chart, every GIF, every number you see — it comes from real measurements, not made-up data."
+
+
+---
+[4:15 - 4:45] WHY IT MATTERS (Voiceover + impactful imagery)
+---
+
+VOICEOVER (show Alpine landscape footage):
+"Climate misinformation isn't just annoying — it's dangerous. It delays action. It confuses the public. And in the Alps, the changes are happening right now."
+
+"Journalists need tools to verify claims quickly. Readers need a way to check what they're reading. And policymakers need evidence they can trust."
+
+"Triglav puts the power of satellite data into everyone's hands."
+
+
+---
+[4:45 - 5:00] OUTRO (Filmed outside, same mountain location)
+---
+
+PERSON ON CAMERA:
+"The data is out there. The satellites are watching. The question is — are we listening?"
+
+*pause, then smile*
+
+"Triglav. Fact-check the Alps."
+
+*END CARD: TRIGLAV logo + SpaceHACK for Sustainability 2026*
+*Team names*
+*github.com/cvikl/chelo*
+
+
+====================================
+PRODUCTION NOTES
+====================================
+
+TOTAL: ~5 minutes
+
+Shot list:
+- Outdoor intro: person walking toward camera with mountains behind (15 sec)
+- B-roll: dramatic mountain/glacier shots (grab from Pexels or own footage)
+- Screen recording: full demo flow with the three articles
+- Code flashes: quick 1-2 second shots of the codebase
+- Satellite imagery: Sentinel-2 tiles, NDSI snow maps
+- Outdoor outro: same location as intro
+
+Screen recording tips:
+- Use the Aletsch article for the main demo (best data coverage)
+- Click through 2-3 highlights to show the popup with charts
+- Show the Greta game briefly (funny moment)
+- Zoom into the charts when talking about specific data
+
+Editing style:
+- Quick cuts (2-4 seconds max per shot)
+- Zoom-ins on key UI elements when mentioning them
+- Lower-third text for key stats ("11% greening increase", "+2°C/decade")
+- Subtle screen shake on dramatic reveals
+- Sound effects on verdict reveals (ding for verified, buzz for misleading)
