@@ -115,11 +115,12 @@ async def full_analyze_stream(request: ArticleRequest):
             "detail": "Resolving location to coordinates for satellite data queries",
         })
 
-        location = extraction.location
-        if location.lat and location.lon:
-            coords = {"lat": location.lat, "lon": location.lon, "bbox": location.bbox}
-        else:
-            coords = await geocode(location.name)
+        # Always geocode by name for accuracy — LLM coordinates can be wrong
+        try:
+            coords = await geocode(extraction.location.name)
+        except ValueError:
+            # Fallback to LLM-provided coordinates if geocoding fails
+            coords = {"lat": extraction.location.lat, "lon": extraction.location.lon, "bbox": extraction.location.bbox}
 
         yield sse_event("thinking", {
             "step": "geocoding_done",
