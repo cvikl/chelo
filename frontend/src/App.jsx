@@ -4,6 +4,7 @@ import LocationInfo from "./components/LocationInfo";
 import AnnotatedArticle from "./components/AnnotatedArticle";
 import VerdictPanel from "./components/VerdictPanel";
 import ThinkingPanel from "./components/ThinkingPanel";
+import RunnerGame from "./components/RunnerGame";
 import FactCheckPopup from "./components/FactCheckPopup";
 import { analyzeWithStream } from "./api";
 import "./App.css";
@@ -68,7 +69,12 @@ export default function App() {
             </>
           ) : (
             <div className="results">
-              {!analysis && <ThinkingPanel steps={thinkingSteps} />}
+              {!analysis && (
+                <>
+                  <RunnerGame />
+                  <ThinkingPanel steps={thinkingSteps} />
+                </>
+              )}
 
               {error && <div className="error-banner">{error}</div>}
 

@@ -1,95 +1,59 @@
-const STEP_ICONS = {
-  brain_start: "🧠",
-  brain_done: "🧠",
-  geocoding: "📍",
-  geocoding_done: "📍",
-  agents_dispatch: "🛰️",
-  agent_done: "✅",
-  agent_error: "❌",
-  comparing: "⚖️",
-  done: "🏁",
-};
-
-const AGENT_LABELS = {
-  snow_cover: "Snow Cover",
-  glacier_extent: "Glacier Extent",
-  temperature: "Temperature",
-  precipitation: "Precipitation",
-  vegetation: "Vegetation",
-};
-
-function StepItem({ step, isLatest }) {
-  const icon = STEP_ICONS[step.step] || "⏳";
-
-  return (
-    <div className={`thinking-step ${isLatest ? "latest" : ""} step-${step.step}`}>
-      <span className="step-icon">{icon}</span>
-      <div className="step-content">
-        <p className="step-message">{step.message}</p>
-        <p className="step-detail">{step.detail}</p>
-
-        {step.claims && (
-          <div className="step-claims">
-            {step.claims.map((c) => (
-              <span key={c.id} className={`step-claim-tag severity-${c.severity}`}>
-                {c.type.replace("_", " ")}: {c.text.slice(0, 60)}...
-              </span>
-            ))}
-          </div>
-        )}
-
-        {step.agents && (
-          <div className="step-agents">
-            {step.agents.map((a) => (
-              <span key={a} className="step-agent-tag">
-                {AGENT_LABELS[a] || a}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+import { useState, useEffect } from "react";
 
 export default function ThinkingPanel({ steps }) {
-  if (!steps || steps.length === 0) return null;
+  const [displayStep, setDisplayStep] = useState(null);
+  const [locked, setLocked] = useState(false);
 
-  // Count completed agents
-  const agentsDone = steps.filter((s) => s.step === "agent_done").length;
-  const agentsTotal = steps.find((s) => s.step === "agents_dispatch")?.agents?.length || 0;
-  const isDone = steps.some((s) => s.step === "done");
+  useEffect(() => {
+    if (!locked && steps.length > 0) {
+      const latestStep = steps[steps.length - 1];
+      if (displayStep !== latestStep) {
+        setDisplayStep(latestStep);
+        setLocked(true);
+        setTimeout(() => setLocked(false), 1000);
+      }
+    }
+  }, [steps, locked, displayStep]);
+
+  const current = displayStep || steps[0];
+
+  const getProgress = (stepType) => {
+    switch (stepType) {
+      case "brain_start": return 15;
+      case "brain_done": return 30;
+      case "geocoding": return 40;
+      case "geocoding_done": return 55;
+      case "agents_dispatch": return 70;
+      case "agent_done": return 85;
+      case "agent_error": return 85;
+      case "comparing": return 95;
+      case "done": return 100;
+      default: return 5;
+    }
+  };
+
+  const progressPercent = current ? getProgress(current.step) : 0;
 
   return (
     <div className="thinking-panel">
       <div className="thinking-header">
-        <h2>
-          {isDone ? "Analysis Complete" : "Analyzing..."}
-        </h2>
-        {agentsTotal > 0 && !isDone && (
-          <span className="agent-progress">
-            Agents: {agentsDone}/{agentsTotal}
-          </span>
-        )}
+        <h2>Analyzing Article...</h2>
       </div>
 
-      <div className="thinking-steps">
-        {steps.map((step, i) => (
-          <StepItem
-            key={i}
-            step={step}
-            isLatest={i === steps.length - 1 && !isDone}
-          />
-        ))}
+      <div className="progress-container">
+        <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+        {current && <span className="progress-text">{progressPercent}%</span>}
       </div>
 
-      {!isDone && (
-        <div className="thinking-loader">
-          <div className="loader-dots">
+      <div className="status-text">
+        {current ? (
+          current.message
+        ) : (
+          <div className="loader-dots loader-right">
             <span /><span /><span />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
