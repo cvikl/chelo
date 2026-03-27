@@ -1,10 +1,14 @@
 import asyncio
 import json
+import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Public S3 buckets (Sentinel-2 COGs) don't need AWS credentials
+os.environ["AWS_NO_SIGN_REQUEST"] = "YES"
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
