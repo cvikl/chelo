@@ -11,6 +11,9 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
 
     TODO: Replace with real Sentinel-2 NDVI time series from GEE.
     """
+    from agents.date_utils import clamp_date
+    start_date = clamp_date(start_date, "vegetation")
+
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
     years = max(1, (end.year - start.year))

@@ -18,52 +18,55 @@ def get_client():
         _client = genai.Client(api_key=api_key)
     return _client
 
-EXTRACTION_PROMPT = """You are an expert climate scientist and fact-checker specializing in the Alpine region.
-Your job is to thoroughly analyze a climate article and extract EVERY verifiable claim for fact-checking against satellite and ground-station data.
+EXTRACTION_PROMPT = """You are a climate fact-checker for the Alpine region.
 
-Be aggressive in finding claims. Look for:
-- Explicit statements about environmental trends (snow, glaciers, temperature, rain, vegetation)
-- Implicit claims hidden in anecdotes or quotes
-- Claims disguised as "observations" from non-scientific sources
-- Minimizing language ("only", "minor", "merely", "just")
-- Denial language ("no evidence", "hasn't changed", "remained stable")
+Analyze this article and extract the factual claims that can be verified with climate data.
 
-For EACH claim, you must extract the EXACT QUOTE from the article — the precise sentence or phrase as it appears in the text. This will be used to highlight it in the article. The exact_quote MUST be a substring that appears verbatim in the article.
+RULES:
+- Only extract claims about measurable environmental parameters (temperature, snow, glaciers, precipitation, vegetation)
+- Each claim should be a single, specific, verifiable statement — not a general opinion or framing
+- The exact_quote MUST be a verbatim substring copied from the article text, not paraphrased
+- For time_range: use the dates the article discusses. If "since 2005", start is 2005. If no end date, use 2024-12-31. Never go earlier than 1940.
+- For location: pick the most specific location mentioned. Provide accurate lat/lon.
 
-Classify severity:
-- "high": Direct denial or major misrepresentation of well-documented trends
-- "medium": Misleading framing, cherry-picking, or minimizing real changes
-- "low": Minor inaccuracy or ambiguous claim
+Parameters to check (only these 5). Each has a data availability range — only request a parameter if the article's time range overlaps with its data:
+- temperature: air temperature trends, warming rate. Data from 1940.
+- precipitation: rainfall vs snowfall, totals, snow-to-rain ratio. Data from 1940.
+- snow_cover: snow extent, depth, duration, snowpack. Data from 2000.
+- glacier_extent: glacier area, retreat, thickness. Baseline ~2000, imagery from 2015.
+- vegetation: greening, treeline shifts, growing season. Data from 2015.
 
-Decide which parameters need checking. Choose ALL that apply from:
-- snow_cover (snow extent, depth, duration, snowpack, ski season length)
-- glacier_extent (glacier area, retreat, thickness, volume, terminus position)
-- temperature (surface temperature, warming rate, seasonal temperatures)
-- vegetation (greening, NDVI, treeline shifts, growing season, species migration)
-- precipitation (rainfall, snowfall, snow-to-rain ratio, annual totals)
+Claim direction:
+- "stable": article says no change
+- "denial": article denies well-known change
+- "increasing" / "decreasing": article claims a directional trend
+- "exaggeration": article overstates a change
 
-You MUST respond with valid JSON matching this exact schema:
+Severity:
+- "high": directly contradicts well-documented scientific consensus
+- "medium": misleading framing or cherry-picking
+- "low": minor or ambiguous
+
+Respond with JSON:
 {
-  "location": {"name": "string", "lat": float, "lon": float, "bbox": [float, float, float, float] or null},
+  "location": {"name": "string", "lat": float, "lon": float, "bbox": [float,float,float,float] or null},
   "time_range": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
   "parameters_requested": ["string"],
   "claims": [
     {
       "id": "claim_1",
-      "text": "paraphrased claim summary",
-      "exact_quote": "exact text from the article to highlight",
+      "text": "short paraphrase",
+      "exact_quote": "verbatim text from article",
       "type": "parameter_type",
-      "direction": "increasing|decreasing|stable|denial|exaggeration",
+      "direction": "stable|denial|increasing|decreasing|exaggeration",
       "severity": "high|medium|low",
-      "time_reference": "string or null"
+      "time_reference": "e.g. 2005-2024 or null"
     }
   ],
-  "article_summary": "string"
+  "article_summary": "1-2 sentence summary"
 }
 
-Extract as many claims as you can find. Be thorough — miss nothing.
-
-Article to analyze:
+Article:
 """
 
 
@@ -77,4 +80,12 @@ async def extract_claims(article_text: str) -> ExtractionResult:
         ),
     )
     data = json.loads(response.text)
+
+    # Clamp time_range to data availability (1940+)
+    tr = data.get("time_range", {})
+    start = tr.get("start", "1940-01-01")
+    if start < "1940-01-01":
+        tr["start"] = "1940-01-01"
+    data["time_range"] = tr
+
     return ExtractionResult(**data)

@@ -13,6 +13,9 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     Query real temperature data from Open-Meteo archive API.
     Returns trend analysis, yearly stats, and a base64-encoded plot.
     """
+    from agents.date_utils import clamp_date
+    start_date = clamp_date(start_date, "temperature")
+
     # Fetch real data from Open-Meteo
     async with httpx.AsyncClient() as client:
         response = await client.get(

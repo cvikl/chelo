@@ -130,27 +130,33 @@ async def full_analyze_stream(request: ArticleRequest):
         # Step 3: Dispatching agents
         agents_to_run = [p for p in extraction.parameters_requested if p in AGENT_REGISTRY]
 
+        # Unify date range to the latest data source start among requested agents
+        from agents.date_utils import get_unified_start_date
+        lat, lon = coords["lat"], coords["lon"]
+        raw_start = extraction.time_range["start"]
+        end_date = extraction.time_range["end"]
+        start_date = get_unified_start_date(agents_to_run, raw_start)
+
+        date_note = ""
+        if start_date != raw_start:
+            date_note = f" (adjusted from {raw_start} to {start_date} — limited by data availability)"
+
         yield sse_event("thinking", {
             "step": "agents_dispatch",
-            "message": f"Dispatching {len(agents_to_run)} satellite agents in parallel",
-            "detail": ", ".join(agents_to_run),
+            "message": f"Dispatching {len(agents_to_run)} agents — unified range: {start_date} to {end_date}",
+            "detail": ", ".join(agents_to_run) + date_note,
             "agents": agents_to_run,
         })
-
-        # Run agents one by one but yield progress for each
-        lat, lon = coords["lat"], coords["lon"]
-        start_date = extraction.time_range["start"]
-        end_date = extraction.time_range["end"]
         all_results = []
         errors = []
 
         # Actually run them in parallel, but report as they complete
         agent_source_map = {
-            "snow_cover": "MOD10A1.061 (MODIS Terra)",
-            "glacier_extent": "Sentinel-2 + Randolph Glacier Inventory",
-            "temperature": "Open-Meteo Historical Archive (ERA5)",
-            "precipitation": "Open-Meteo Historical Archive (ERA5)",
-            "vegetation": "Sentinel-2 MSI (NDVI analysis)",
+            "snow_cover": "MOD10A1.061 (MODIS Terra) — data from 2000",
+            "glacier_extent": "Sentinel-2 + RGI — imagery from 2015, baseline ~2000",
+            "temperature": "Open-Meteo ERA5 — data from 1940",
+            "precipitation": "Open-Meteo ERA5 — data from 1940",
+            "vegetation": "Sentinel-2 NDVI — data from 2015",
         }
 
         async def run_single_agent(param):

@@ -10,9 +10,12 @@ import numpy as np
 
 async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     """
-    Query real snowfall/precipitation data from Open-Meteo archive API.
-    Returns snow day trends, yearly stats, and a base64-encoded plot.
+    Query real precipitation data from Open-Meteo archive API.
+    Separates rainfall vs snowfall trends.
     """
+    from agents.date_utils import clamp_date
+    start_date = clamp_date(start_date, "precipitation")
+
     async with httpx.AsyncClient() as client:
         response = await client.get(
             "https://archive-api.open-meteo.com/v1/archive",

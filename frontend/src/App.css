@@ -431,7 +431,7 @@ textarea:focus { outline: none; border-color: #38bdf8; }
   background: #1e293b;
   border-radius: 16px;
   padding: 1.75rem;
-  max-width: 520px;
+  max-width: 680px;
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
@@ -557,9 +557,19 @@ textarea:focus { outline: none; border-color: #38bdf8; }
 }
 
 .popup-plot {
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid #334155;
+  width: calc(100% + 2rem);
+  margin-left: -1rem;
+  margin-top: 0.5rem;
+  border-radius: 10px;
+  border: 2px solid #334155;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+.popup-section:has(.popup-plot) h4 {
+  font-size: 0.8rem;
+  color: #38bdf8;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
 }
 
 /* Mini Chart */
