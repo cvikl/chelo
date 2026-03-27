@@ -121,6 +121,13 @@ textarea:focus { outline: none; border-color: #0ea5e9; box-shadow: 0 0 0 1px #0e
 .btn-red:hover { background: #fee2e2; }
 .btn-green { border: 1px solid #bbf7d0; color: #22c55e; background: #f0fdf4; }
 .btn-green:hover { background: #dcfce7; }
+.btn-article { font-size: 0.8rem; padding: 0.5rem 0.75rem; }
+.btn-blue { border: 1px solid #bfdbfe; color: #2563eb; background: #eff6ff; }
+.btn-blue:hover { background: #dbeafe; }
+.btn-orange { border: 1px solid #fed7aa; color: #ea580c; background: #fff7ed; }
+.btn-orange:hover { background: #ffedd5; }
+.btn-purple { border: 1px solid #e9d5ff; color: #9333ea; background: #faf5ff; }
+.btn-purple:hover { background: #f3e8ff; }
 .btn-back {
   background: none;
   border: 1px solid #e2e8f0;
