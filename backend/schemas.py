@@ -39,6 +39,7 @@ class SatelliteDataPoint(BaseModel):
     change_percent: float | None = None
     confidence: float | None = None
     summary: str | None = None
+    plot_base64: str | None = None  # base64-encoded PNG chart from agents
 
 
 class SatelliteResponse(BaseModel):

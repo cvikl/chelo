@@ -141,7 +141,16 @@ export default function FactCheckPopup({ verdict, onClose }) {
           </div>
         </div>
 
-        {verdict.satellite_data?.time_series && (
+        {verdict.satellite_data?.plot_base64 ? (
+          <div className="popup-section">
+            <h4>Data Visualization</h4>
+            <img
+              className="popup-plot"
+              src={`data:image/png;base64,${verdict.satellite_data.plot_base64}`}
+              alt={`${verdict.claim_type} trend chart`}
+            />
+          </div>
+        ) : verdict.satellite_data?.time_series ? (
           <div className="popup-section">
             <h4>Trend Over Time</h4>
             <MiniChart
@@ -149,7 +158,7 @@ export default function FactCheckPopup({ verdict, onClose }) {
               parameter={verdict.claim_type}
             />
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

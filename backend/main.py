@@ -148,8 +148,8 @@ async def full_analyze_stream(request: ArticleRequest):
         agent_source_map = {
             "snow_cover": "MOD10A1.061 (MODIS Terra)",
             "glacier_extent": "Sentinel-2 + Randolph Glacier Inventory",
-            "temperature": "EEAR-Clim (10,000+ ground stations)",
-            "precipitation": "EEAR-Clim (Extended Alpine Region)",
+            "temperature": "Open-Meteo Historical Archive (ERA5)",
+            "precipitation": "Open-Meteo Historical Archive (ERA5)",
             "vegetation": "Sentinel-2 MSI (NDVI analysis)",
         }
 
@@ -199,6 +199,7 @@ async def full_analyze_stream(request: ArticleRequest):
                     confidence=result.get("confidence"),
                     summary=result.get("summary"),
                     time_series=result.get("yearly_data"),
+                    plot_base64=result.get("plot_base64"),
                 )
             )
 
