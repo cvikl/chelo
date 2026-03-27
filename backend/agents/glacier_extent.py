@@ -21,19 +21,38 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     end_year = int(end_date[:4])
     years = max(1, end_year - start_year)
 
+    # Snap to nearest known glacier center if the requested point is nearby
+    # This ensures the 5km window captures actual glacier area
+    GLACIER_CENTERS = [
+        (46.45, 8.05, "Aletsch Glacier"),  # mid-Aletsch
+        (46.49, 8.03, "Upper Aletsch"),
+        (45.83, 6.87, "Mer de Glace"),
+        (47.08, 12.69, "Pasterze"),
+    ]
+    for glat, glon, gname in GLACIER_CENTERS:
+        dist = ((lat - glat)**2 + (lon - glon)**2)**0.5
+        if dist < 0.15:  # within ~15km
+            lat, lon = glat, glon
+            break
+
     # Search for summer tiles (June-Sept) for best glacier visibility
     # Try the requested year first, then nearby years if no tiles found
     async def find_tile(target_year: int, direction: int = 1) -> dict | None:
-        """Search target year, then expand up to 3 years in given direction."""
+        """Search target year, then expand up to 3 years in given direction.
+        Prefer July-August to minimize seasonal snow interference."""
         for offset in range(4):
             y = target_year + offset * direction
             if y < 2017 or y > 2025:
                 continue
-            # Try summer first
-            tile = await search_tile(lat, lon, f"{y}-06-01", f"{y}-09-30")
+            # Prefer peak summer (Jul-Aug) for glacier-only signal
+            tile = await search_tile(lat, lon, f"{y}-07-01", f"{y}-08-31")
             if tile:
                 return tile
-            # Try full year with relaxed cloud
+            # Fallback: broader summer
+            tile = await search_tile(lat, lon, f"{y}-06-01", f"{y}-09-30", max_cloud=30)
+            if tile:
+                return tile
+            # Last resort
             tile = await search_tile(lat, lon, f"{y}-01-01", f"{y}-12-31", max_cloud=40)
             if tile:
                 return tile
