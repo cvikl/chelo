@@ -22,34 +22,36 @@ export async function analyzeWithStream(articleText, onThinking, onResult, onErr
 
     buffer += decoder.decode(value, { stream: true });
 
-    // Parse SSE events from buffer
-    const lines = buffer.split("\n");
-    buffer = "";
+    // SSE events are separated by double newlines
+    let boundary;
+    while ((boundary = buffer.indexOf("\n\n")) !== -1) {
+      const block = buffer.slice(0, boundary);
+      buffer = buffer.slice(boundary + 2);
 
-    let currentEvent = null;
-    for (const line of lines) {
-      if (line.startsWith("event: ")) {
-        currentEvent = line.slice(7).trim();
-      } else if (line.startsWith("data: ") && currentEvent) {
+      let eventType = null;
+      let dataStr = "";
+
+      for (const line of block.split("\n")) {
+        if (line.startsWith("event: ")) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith("data: ")) {
+          dataStr += line.slice(6);
+        }
+      }
+
+      if (eventType && dataStr) {
         try {
-          const data = JSON.parse(line.slice(6));
-          if (currentEvent === "thinking") {
+          const data = JSON.parse(dataStr);
+          if (eventType === "thinking") {
             onThinking(data);
-          } else if (currentEvent === "result") {
+          } else if (eventType === "result") {
             onResult(data);
-          } else if (currentEvent === "error") {
+          } else if (eventType === "error") {
             onError(data.message);
           }
-        } catch {
-          // Incomplete JSON, put back in buffer
-          buffer = line + "\n";
+        } catch (e) {
+          console.warn("Failed to parse SSE data:", e);
         }
-        currentEvent = null;
-      } else if (line.trim() === "") {
-        currentEvent = null;
-      } else {
-        // Incomplete line, put back in buffer
-        buffer += line + "\n";
       }
     }
   }
