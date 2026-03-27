@@ -1,0 +1,310 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+  min-height: 100vh;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #1e293b;
+}
+
+.app-header h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #38bdf8, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-header p {
+  color: #94a3b8;
+  margin-top: 0.5rem;
+}
+
+/* Article Input */
+.article-input {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.article-input h2 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+.subtitle { color: #94a3b8; font-size: 0.875rem; margin-bottom: 1rem; }
+
+textarea {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 1rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: inherit;
+}
+
+textarea:focus { outline: none; border-color: #38bdf8; }
+
+.button-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #38bdf8, #34d399);
+  color: #0f172a;
+}
+
+.btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: #334155; color: #e2e8f0; }
+.btn-secondary:hover { background: #475569; }
+
+/* Error */
+.error-banner {
+  background: #7f1d1d;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #fca5a5;
+}
+
+/* Location Info */
+.location-info {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.article-summary {
+  color: #94a3b8;
+  font-style: italic;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.info-card {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.info-card h4 {
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.info-value { font-size: 1.1rem; font-weight: 600; }
+.info-detail { color: #64748b; font-size: 0.8rem; margin-top: 0.25rem; }
+
+.param-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+.param-tag {
+  background: #334155;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+}
+
+/* Claims */
+.claims-list {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.claims-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.claim-card {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.claim-badges { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+
+.badge {
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-type { background: #1e3a5f; color: #38bdf8; }
+.badge-increasing { background: #14532d; color: #4ade80; }
+.badge-decreasing { background: #7f1d1d; color: #f87171; }
+.badge-stable { background: #3f3f46; color: #a1a1aa; }
+.badge-denial { background: #7f1d1d; color: #fca5a5; }
+.badge-exaggeration { background: #78350f; color: #fbbf24; }
+
+.claim-text { color: #cbd5e1; line-height: 1.5; font-size: 0.9rem; }
+
+.claim-time {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+/* Verdicts */
+.verdict-panel {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.verdict-summary { display: flex; gap: 1rem; margin: 1rem 0; }
+
+.summary-stat {
+  flex: 1;
+  text-align: center;
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.stat-number { display: block; font-size: 2rem; font-weight: 800; }
+.summary-stat.verified .stat-number { color: #4ade80; }
+.summary-stat.misleading .stat-number { color: #f87171; }
+.summary-stat.total .stat-number { color: #38bdf8; }
+.stat-label { font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+
+.verdicts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.verdict-card {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 4px solid;
+}
+
+.verdict-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.verdict-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: white;
+}
+
+.verdict-type { color: #64748b; font-size: 0.8rem; text-transform: capitalize; }
+.verdict-claim { color: #cbd5e1; font-style: italic; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.verdict-explanation { color: #94a3b8; font-size: 0.85rem; line-height: 1.5; }
+
+.verdict-data {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #1e293b;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* Satellite Summary */
+.satellite-summary {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #334155;
+}
+
+.satellite-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.satellite-card {
+  background: #0f172a;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.satellite-card h4 { text-transform: capitalize; margin-bottom: 0.5rem; color: #38bdf8; }
+.satellite-card p { font-size: 0.85rem; color: #94a3b8; line-height: 1.4; }
+
+.confidence-bar {
+  margin-top: 0.5rem;
+  background: #1e293b;
+  border-radius: 4px;
+  height: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.confidence-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #34d399);
+  border-radius: 4px;
+}
+
+.confidence-bar span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+}
