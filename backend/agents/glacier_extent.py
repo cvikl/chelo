@@ -14,7 +14,7 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     """
     from agents.date_utils import clamp_date
     from agents.glacier_model import get_model, predict_glacier_mask, calculate_glacier_area
-    from agents.sentinel2_fetch import search_tile, fetch_patch
+    from agents.sentinel2_fetch import search_tile, search_dem_tile, fetch_patch
 
     start_date = clamp_date(start_date, "glacier_extent")
     start_year = int(start_date[:4])
@@ -48,9 +48,12 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     start_tile_date = tile_start["properties"]["datetime"][:10]
     end_tile_date = tile_end["properties"]["datetime"][:10]
 
+    # Fetch DEM tile for elevation + slope channels
+    dem_item = await search_dem_tile(lat, lon)
+
     # Fetch 16-channel patches (5km extent around the point)
-    patch_start = fetch_patch(tile_start, lat, lon, size=256, extent_m=5000)
-    patch_end = fetch_patch(tile_end, lat, lon, size=256, extent_m=5000)
+    patch_start = fetch_patch(tile_start, lat, lon, size=256, extent_m=5000, dem_item=dem_item)
+    patch_end = fetch_patch(tile_end, lat, lon, size=256, extent_m=5000, dem_item=dem_item)
 
     # Run segmentation model
     tensor_start = torch.from_numpy(patch_start).unsqueeze(0).float()
