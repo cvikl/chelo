@@ -1,17 +1,22 @@
 # Dependencies
 node_modules/
 backend/venv/
+venv/
 
-# Environment
+# Environment / secrets
 .env
 .env.local
+*.env
 
 # Build output
 frontend/dist/
+dl4gam_output/
 
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # OS
 .DS_Store
@@ -20,6 +25,24 @@ Thumbs.db
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+
+# Model checkpoints (too large for git)
+*.ckpt
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# Generated images / outputs
+*.tif
+*.geotiff
+*.html
+!frontend/**/*.html
 
 # Vite
 *.local
+
+# Jupyter
+.ipynb_checkpoints/
