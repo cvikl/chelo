@@ -104,9 +104,61 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     total_change = yearly_stats[-1]["mean_temp_c"] - yearly_stats[0]["mean_temp_c"]
     years_span = yearly_stats[-1]["year"] - yearly_stats[0]["year"]
 
-    return {
+    # Generate GEE Land Surface Temperature map
+    gif_base64 = None
+    try:
+        import ee
+        ee.Initialize(project="spacehack-491507")
+
+        aoi = ee.Geometry.Point([lon, lat]).buffer(30000)
+        start_y = yearly_stats[0]["year"]
+        end_y = yearly_stats[-1]["year"]
+
+        # Get LST for start and end summers
+        def get_lst(year):
+            dataset = (
+                ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
+                .filterBounds(aoi)
+                .filterDate(f"{year}-06-01", f"{year}-08-31")
+                .filter(ee.Filter.lt("CLOUD_COVER", 30))
+            )
+            def to_celsius(image):
+                return image.select("ST_B10").multiply(0.00341802).add(149.0).subtract(273.15).rename("LST")
+            return dataset.map(to_celsius).select("LST").median().clip(aoi)
+
+        lst_start = get_lst(start_y)
+        lst_end = get_lst(end_y)
+
+        # Generate thumbnail images
+        vis = {"min": -5, "max": 25, "palette": [
+            "040274", "0502a3", "0502e6", "0602ff", "307ef3", "30c8e2",
+            "3be285", "86e26f", "b5e22e", "fff705", "ffd611", "ffb613",
+            "ff8b13", "ff500d", "ff0000", "c21301", "911003"
+        ]}
+
+        frames = []
+        for lst, year in [(lst_start, start_y), (lst_end, end_y)]:
+            url = lst.getThumbURL({"min": vis["min"], "max": vis["max"],
+                                   "palette": vis["palette"],
+                                   "dimensions": 256, "region": aoi})
+            import httpx as hx
+            resp = hx.get(url, timeout=30.0)
+            if resp.status_code == 200:
+                from PIL import Image
+                img = Image.open(io.BytesIO(resp.content)).convert("RGB")
+                frames.append(img)
+
+        if len(frames) == 2:
+            gif_buf = io.BytesIO()
+            frames[0].save(gif_buf, format="GIF", save_all=True, append_images=frames[1:], duration=2000, loop=0)
+            gif_buf.seek(0)
+            gif_base64 = base64.b64encode(gif_buf.read()).decode("utf-8")
+    except Exception:
+        pass  # GEE is optional — don't fail the whole agent
+
+    result = {
         "parameter": "temperature",
-        "source": "Open-Meteo Historical Archive (ERA5 reanalysis)",
+        "source": "Open-Meteo ERA5 + Google Earth Engine Landsat LST",
         "unit": "celsius",
         "location": {"lat": lat, "lon": lon},
         "time_range": {"start": start_date, "end": end_date},
@@ -124,3 +176,8 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
             f"({total_change:+.1f}°C over {years_span} years)."
         ),
     }
+
+    if gif_base64:
+        result["gif_base64"] = gif_base64
+
+    return result

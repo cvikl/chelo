@@ -40,6 +40,7 @@ class SatelliteDataPoint(BaseModel):
     confidence: float | None = None
     summary: str | None = None
     plot_base64: str | None = None  # base64-encoded PNG chart from agents
+    gif_base64: str | None = None   # base64-encoded GIF animation from agents
 
 
 class SatelliteResponse(BaseModel):

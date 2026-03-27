@@ -94,8 +94,7 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
             "tile_date": tile_date,
         })
 
-        if year == start_year or year == end_year:
-            ndvi_maps[year] = ndvi
+        ndvi_maps[year] = ndvi
 
     if len(yearly_data) < 2:
         raise ValueError("Not enough vegetation data")
@@ -166,7 +165,23 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")
 
-    return {
+    # Generate NDVI GIF from all yearly maps
+    gif_base64 = None
+    if len(ndvi_maps) >= 2:
+        from PIL import Image
+        import matplotlib.cm as cm
+        imgs = []
+        for year in sorted(ndvi_maps.keys()):
+            ndvi_map = ndvi_maps[year]
+            colored = (cm.Greens(np.clip(ndvi_map, 0, 1)) * 255).astype(np.uint8)[:, :, :3]
+            imgs.append(Image.fromarray(colored))
+
+        gif_buf = io.BytesIO()
+        imgs[0].save(gif_buf, format="GIF", save_all=True, append_images=imgs[1:], duration=1500, loop=0)
+        gif_buf.seek(0)
+        gif_base64 = base64.b64encode(gif_buf.read()).decode("utf-8")
+
+    result = {
         "parameter": "vegetation",
         "source": "Sentinel-2 L2A NDVI (Element84 Earth Search)",
         "unit": "ndvi_index",
@@ -184,3 +199,8 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
             f"Tiles analyzed: {len(yearly_data)} years."
         ),
     }
+
+    if gif_base64:
+        result["gif_base64"] = gif_base64
+
+    return result

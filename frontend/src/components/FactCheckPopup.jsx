@@ -141,6 +141,17 @@ export default function FactCheckPopup({ verdict, onClose }) {
           </div>
         </div>
 
+        {verdict.satellite_data?.gif_base64 && (
+          <div className="popup-section">
+            <h4>Satellite Animation</h4>
+            <img
+              className="popup-plot popup-gif"
+              src={`data:image/gif;base64,${verdict.satellite_data.gif_base64}`}
+              alt={`${verdict.claim_type} animated change`}
+            />
+          </div>
+        )}
+
         {verdict.satellite_data?.plot_base64 ? (
           <div className="popup-section">
             <h4>Data Visualization</h4>

@@ -1,19 +1,19 @@
-"""Glacier Extent Agent — fetches real Sentinel-2 imagery and runs trained UNet segmentation."""
+"""Glacier Extent Agent — fetches real Sentinel-2 imagery and runs trained UNet segmentation
+with DL4GAM-correct normalization."""
 
 import io
 import base64
 
 import numpy as np
-import torch
 
 
 async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     """
     Fetch real Sentinel-2 tiles for start and end periods,
-    run glacier segmentation model, compare areas.
+    run glacier segmentation model with proper normalization, compare areas.
     """
     from agents.date_utils import clamp_date
-    from agents.glacier_model import get_model, predict_glacier_mask, calculate_glacier_area
+    from agents.glacier_model import predict_glacier_mask, calculate_glacier_area
     from agents.sentinel2_fetch import search_tile, search_dem_tile, fetch_patch
 
     start_date = clamp_date(start_date, "glacier_extent")
@@ -21,38 +21,30 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     end_year = int(end_date[:4])
     years = max(1, end_year - start_year)
 
-    # Snap to nearest known glacier center if the requested point is nearby
-    # This ensures the 5km window captures actual glacier area
+    # Snap to nearest known glacier center
     GLACIER_CENTERS = [
-        (46.45, 8.05, "Aletsch Glacier"),  # mid-Aletsch
+        (46.45, 8.05, "Aletsch Glacier"),
         (46.49, 8.03, "Upper Aletsch"),
         (45.83, 6.87, "Mer de Glace"),
         (47.08, 12.69, "Pasterze"),
     ]
     for glat, glon, gname in GLACIER_CENTERS:
         dist = ((lat - glat)**2 + (lon - glon)**2)**0.5
-        if dist < 0.15:  # within ~15km
+        if dist < 0.15:
             lat, lon = glat, glon
             break
 
-    # Search for summer tiles (June-Sept) for best glacier visibility
-    # Try the requested year first, then nearby years if no tiles found
-    async def find_tile(target_year: int, direction: int = 1) -> dict | None:
-        """Search target year, then expand up to 3 years in given direction.
-        Prefer July-August to minimize seasonal snow interference."""
+    async def find_tile(target_year, direction=1):
         for offset in range(4):
             y = target_year + offset * direction
             if y < 2017 or y > 2025:
                 continue
-            # Prefer peak summer (Jul-Aug) for glacier-only signal
             tile = await search_tile(lat, lon, f"{y}-07-01", f"{y}-08-31")
             if tile:
                 return tile
-            # Fallback: broader summer
             tile = await search_tile(lat, lon, f"{y}-06-01", f"{y}-09-30", max_cloud=30)
             if tile:
                 return tile
-            # Last resort
             tile = await search_tile(lat, lon, f"{y}-01-01", f"{y}-12-31", max_cloud=40)
             if tile:
                 return tile
@@ -62,26 +54,21 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     tile_end = await find_tile(min(end_year, 2025), direction=-1)
 
     if tile_start is None or tile_end is None:
-        raise ValueError(f"Could not find Sentinel-2 tiles for this location and time range")
+        raise ValueError("Could not find Sentinel-2 tiles for this location and time range")
 
     start_tile_date = tile_start["properties"]["datetime"][:10]
     end_tile_date = tile_end["properties"]["datetime"][:10]
 
-    # Fetch DEM tile for elevation + slope channels
     dem_item = await search_dem_tile(lat, lon)
 
-    # Fetch 16-channel patches (5km extent around the point)
+    # Fetch 16-channel patches
     patch_start = fetch_patch(tile_start, lat, lon, size=256, extent_m=5000, dem_item=dem_item)
     patch_end = fetch_patch(tile_end, lat, lon, size=256, extent_m=5000, dem_item=dem_item)
 
-    # Run segmentation model
-    tensor_start = torch.from_numpy(patch_start).unsqueeze(0).float()
-    tensor_end = torch.from_numpy(patch_end).unsqueeze(0).float()
+    # Run model with proper DL4GAM normalization (handles normalization internally)
+    mask_start, prob_start = predict_glacier_mask(patch_start)
+    mask_end, prob_end = predict_glacier_mask(patch_end)
 
-    mask_start = predict_glacier_mask(tensor_start)
-    mask_end = predict_glacier_mask(tensor_end)
-
-    # Calculate areas (5000m extent / 256 pixels = ~19.5m per pixel)
     pixel_size = 5000.0 / 256.0
     area_start = calculate_glacier_area(mask_start, pixel_size_m=pixel_size)
     area_end = calculate_glacier_area(mask_end, pixel_size_m=pixel_size)
@@ -91,7 +78,6 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     else:
         period_change = 0.0
 
-    # Build yearly interpolation
     yearly_data = []
     for i in range(years + 1):
         year = start_year + i
@@ -104,7 +90,13 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
             "glacier_area_km2": round(area, 3),
         })
 
-    # Generate visualization
+    # Build RGB composites from Sentinel-2 bands (B4=Red, B3=Green, B2=Blue = indices 3,2,1)
+    rgb_start = np.stack([patch_start[3], patch_start[2], patch_start[1]], axis=-1)
+    rgb_start = np.clip(rgb_start / 0.3, 0, 1)  # Stretch [0, 0.3] to [0, 1] for natural color
+    rgb_end = np.stack([patch_end[3], patch_end[2], patch_end[1]], axis=-1)
+    rgb_end = np.clip(rgb_end / 0.3, 0, 1)
+
+    # Generate visualization: RGB + mask overlay + difference
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -113,39 +105,42 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     glacier_cmap = LinearSegmentedColormap.from_list("glacier", [
         "#0f172a", "#1e3a5f", "#38bdf8", "#7dd3fc", "#e0f2fe", "#ffffff"
     ])
-    diff_cmap = LinearSegmentedColormap.from_list("diff", [
-        "#0f172a", "#334155", "#f59e0b", "#dc2626"
-    ])
 
-    model = get_model()
-    with torch.no_grad():
-        prob_start = torch.sigmoid(model(tensor_start))[0, 0].numpy()
-        prob_end = torch.sigmoid(model(tensor_end))[0, 0].numpy()
-
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.5))
+    fig, axes = plt.subplots(2, 3, figsize=(14, 9))
     fig.patch.set_facecolor("#0f172a")
-    fig.suptitle(f"Glacier Segmentation — {lat:.2f}°N, {lon:.2f}°E (5 km window)",
-                 color="#e2e8f0", fontsize=11, fontweight="bold", y=0.98)
+    fig.suptitle(f"Glacier Analysis — {lat:.2f}°N, {lon:.2f}°E",
+                 color="#e2e8f0", fontsize=12, fontweight="bold", y=0.98)
 
-    for ax in axes:
-        ax.set_facecolor("#0f172a")
-        ax.tick_params(colors="#64748b", labelsize=7)
-        for spine in ax.spines.values():
-            spine.set_color("#334155")
+    for row in axes:
+        for ax in row:
+            ax.set_facecolor("#0f172a")
+            ax.tick_params(colors="#64748b", labelsize=7)
+            for spine in ax.spines.values():
+                spine.set_color("#334155")
 
-    axes[0].imshow(prob_start, cmap=glacier_cmap, vmin=0, vmax=1)
-    axes[0].set_title(f"{start_tile_date}", color="#e2e8f0", fontsize=10, fontweight="bold")
-    axes[0].set_xlabel(f"Glacier area: {area_start:.3f} km²", color="#38bdf8", fontsize=9)
+    # Row 1: RGB composites + difference
+    axes[0, 0].imshow(rgb_start)
+    axes[0, 0].set_title(f"True Color {start_tile_date}", color="#e2e8f0", fontsize=10, fontweight="bold")
 
-    axes[1].imshow(prob_end, cmap=glacier_cmap, vmin=0, vmax=1)
-    axes[1].set_title(f"{end_tile_date}", color="#e2e8f0", fontsize=10, fontweight="bold")
-    axes[1].set_xlabel(f"Glacier area: {area_end:.3f} km²", color="#38bdf8", fontsize=9)
+    axes[0, 1].imshow(rgb_end)
+    axes[0, 1].set_title(f"True Color {end_tile_date}", color="#e2e8f0", fontsize=10, fontweight="bold")
+
+    # RGB difference
+    diff_rgb = np.abs(rgb_end.astype(float) - rgb_start.astype(float)).mean(axis=-1)
+    axes[0, 2].imshow(diff_rgb, cmap="hot", vmin=0, vmax=0.3)
+    axes[0, 2].set_title("Change Intensity", color="#f59e0b", fontsize=10, fontweight="bold")
+
+    # Row 2: Glacier probability maps + mask difference
+    axes[1, 0].imshow(prob_start, cmap=glacier_cmap, vmin=0, vmax=1)
+    axes[1, 0].set_title(f"Glacier Prob. — {area_start:.3f} km²", color="#38bdf8", fontsize=10)
+
+    axes[1, 1].imshow(prob_end, cmap=glacier_cmap, vmin=0, vmax=1)
+    axes[1, 1].set_title(f"Glacier Prob. — {area_end:.3f} km²", color="#38bdf8", fontsize=10)
 
     diff = prob_start - prob_end
-    axes[2].imshow(diff.clip(0, 1), cmap=diff_cmap, vmin=0, vmax=0.5)
-    axes[2].set_title(f"Ice Loss ({period_change:+.1f}%)", color="#f87171", fontsize=10, fontweight="bold")
-    lost = max(area_start - area_end, 0)
-    axes[2].set_xlabel(f"Lost: {lost:.3f} km²", color="#f59e0b", fontsize=9)
+    diff_cmap = LinearSegmentedColormap.from_list("diff", ["#0f172a", "#334155", "#f59e0b", "#dc2626"])
+    axes[1, 2].imshow(diff.clip(-0.5, 0.5), cmap="RdBu", vmin=-0.5, vmax=0.5)
+    axes[1, 2].set_title(f"Ice Change ({period_change:+.1f}%)", color="#f87171", fontsize=10)
 
     plt.tight_layout(pad=1.5)
     buf = io.BytesIO()
@@ -156,7 +151,7 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
 
     return {
         "parameter": "glacier_extent",
-        "source": f"UNet Segmentation (Jaccard=0.89) on real Sentinel-2 L2A imagery",
+        "source": "UNet Segmentation (Jaccard=0.89) on real Sentinel-2 L2A + DEM",
         "unit": "km2",
         "location": {"lat": lat, "lon": lon},
         "time_range": {"start": start_date, "end": end_date},
@@ -167,8 +162,8 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
         "model_info": {
             "architecture": "UNet (ResNet34 encoder)",
             "input_channels": 16,
+            "normalization": "DL4GAM (Z-score optical, mean-center DEM/dhdt, /90 slope)",
             "validation_jaccard": 0.8935,
-            "pixel_resolution_m": round(pixel_size, 1),
         },
         "trend": "decreasing" if period_change < -3 else "stable" if abs(period_change) <= 3 else "increasing",
         "change_percent": period_change,
@@ -176,9 +171,8 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
         "yearly_data": yearly_data,
         "plot_base64": plot_base64,
         "summary": (
-            f"Real Sentinel-2 imagery analyzed with glacier segmentation model (Jaccard=0.89). "
+            f"Real Sentinel-2 imagery analyzed with DL4GAM glacier model (Jaccard=0.89). "
             f"Glacier area: {area_start:.3f} km² ({start_tile_date}) → {area_end:.3f} km² ({end_tile_date}), "
-            f"change: {period_change:+.1f}%. "
-            f"Tiles: {tile_start['id']}, {tile_end['id']}."
+            f"change: {period_change:+.1f}%."
         ),
     }

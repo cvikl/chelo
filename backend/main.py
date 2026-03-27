@@ -207,6 +207,7 @@ async def full_analyze_stream(request: ArticleRequest):
                     summary=result.get("summary"),
                     time_series=result.get("yearly_data"),
                     plot_base64=result.get("plot_base64"),
+                    gif_base64=result.get("gif_base64"),
                 )
             )
 
