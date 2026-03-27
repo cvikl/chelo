@@ -71,8 +71,8 @@ export default function App() {
             <div className="results">
               {!analysis && (
                 <>
-                  <RunnerGame />
                   <ThinkingPanel steps={thinkingSteps} />
+                  <RunnerGame />
                 </>
               )}
 
