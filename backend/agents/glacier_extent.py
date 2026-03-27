@@ -103,27 +103,27 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     from matplotlib.colors import LinearSegmentedColormap
 
     glacier_cmap = LinearSegmentedColormap.from_list("glacier", [
-        "#0f172a", "#1e3a5f", "#38bdf8", "#7dd3fc", "#e0f2fe", "#ffffff"
+        "white", "#1e3a5f", "#38bdf8", "#7dd3fc", "#e0f2fe", "#ffffff"
     ])
 
     fig, axes = plt.subplots(2, 3, figsize=(14, 9))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("white")
     fig.suptitle(f"Glacier Analysis — {lat:.2f}°N, {lon:.2f}°E",
-                 color="#e2e8f0", fontsize=12, fontweight="bold", y=0.98)
+                 color="#333333", fontsize=12, fontweight="bold", y=0.98)
 
     for row in axes:
         for ax in row:
-            ax.set_facecolor("#0f172a")
-            ax.tick_params(colors="#64748b", labelsize=7)
+            ax.set_facecolor("white")
+            ax.tick_params(colors="#333333", labelsize=7)
             for spine in ax.spines.values():
                 spine.set_color("#334155")
 
     # Row 1: RGB composites + difference
     axes[0, 0].imshow(rgb_start)
-    axes[0, 0].set_title(f"True Color {start_tile_date}", color="#e2e8f0", fontsize=10, fontweight="bold")
+    axes[0, 0].set_title(f"True Color {start_tile_date}", color="#333333", fontsize=10, fontweight="bold")
 
     axes[0, 1].imshow(rgb_end)
-    axes[0, 1].set_title(f"True Color {end_tile_date}", color="#e2e8f0", fontsize=10, fontweight="bold")
+    axes[0, 1].set_title(f"True Color {end_tile_date}", color="#333333", fontsize=10, fontweight="bold")
 
     # RGB difference
     diff_rgb = np.abs(rgb_end.astype(float) - rgb_start.astype(float)).mean(axis=-1)
@@ -138,13 +138,13 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     axes[1, 1].set_title(f"Glacier Prob. — {area_end:.3f} km²", color="#38bdf8", fontsize=10)
 
     diff = prob_start - prob_end
-    diff_cmap = LinearSegmentedColormap.from_list("diff", ["#0f172a", "#334155", "#f59e0b", "#dc2626"])
+    diff_cmap = LinearSegmentedColormap.from_list("diff", ["white", "#334155", "#f59e0b", "#dc2626"])
     axes[1, 2].imshow(diff.clip(-0.5, 0.5), cmap="RdBu", vmin=-0.5, vmax=0.5)
     axes[1, 2].set_title(f"Ice Change ({period_change:+.1f}%)", color="#f87171", fontsize=10)
 
     plt.tight_layout(pad=1.5)
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="#0f172a")
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")

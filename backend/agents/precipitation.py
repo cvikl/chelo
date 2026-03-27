@@ -83,11 +83,11 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     import matplotlib.pyplot as plt
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8, 5), sharex=True)
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("white")
     for ax in (ax1, ax2):
-        ax.set_facecolor("#0f172a")
-        ax.tick_params(colors="#64748b", labelsize=8)
-        ax.grid(True, linestyle="--", alpha=0.15, color="#334155")
+        ax.set_facecolor("white")
+        ax.tick_params(colors="#333333", labelsize=8)
+        ax.grid(True, linestyle="--", alpha=0.15, color="#cccccc")
         for spine in ax.spines.values():
             spine.set_color("#334155")
 
@@ -96,8 +96,8 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     trend_line = slope * years_arr + intercept
     ax1.plot(years_arr, trend_line, color="#f87171", linewidth=2,
              label=f"Trend: {snow_days_change_per_decade:+.1f} days/decade")
-    ax1.set_ylabel("Snow Days", color="#94a3b8", fontsize=9)
-    ax1.legend(fontsize=8, facecolor="#1e293b", edgecolor="#334155", labelcolor="#e2e8f0")
+    ax1.set_ylabel("Snow Days", color="#333333", fontsize=9)
+    ax1.legend(fontsize=8, facecolor="white", edgecolor="#cccccc", labelcolor="#333333")
 
     # Total snowfall
     snow_totals = np.array([y["total_snow_cm"] for y in yearly_stats])
@@ -105,13 +105,13 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     snow_slope, snow_int = np.polyfit(years_arr, snow_totals, 1)
     ax2.plot(years_arr, snow_slope * years_arr + snow_int, color="#f87171", linewidth=2,
              label=f"Trend: {snow_slope*10:+.1f} cm/decade")
-    ax2.set_ylabel("Snowfall (cm)", color="#94a3b8", fontsize=9)
-    ax2.set_xlabel("Year", color="#94a3b8", fontsize=9)
-    ax2.legend(fontsize=8, facecolor="#1e293b", edgecolor="#334155", labelcolor="#e2e8f0")
+    ax2.set_ylabel("Snowfall (cm)", color="#333333", fontsize=9)
+    ax2.set_xlabel("Year", color="#333333", fontsize=9)
+    ax2.legend(fontsize=8, facecolor="white", edgecolor="#cccccc", labelcolor="#333333")
 
     plt.tight_layout()
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="#0f172a")
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")

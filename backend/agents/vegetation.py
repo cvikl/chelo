@@ -117,12 +117,12 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     has_maps = len(ndvi_maps) == 2
     ncols = 3 if has_maps else 1
     fig, axes = plt.subplots(1, ncols, figsize=(4 * ncols, 4))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("white")
     if ncols == 1:
         axes = [axes]
 
     veg_cmap = LinearSegmentedColormap.from_list("veg", [
-        "#0f172a", "#1a1a2e", "#2d4a22", "#4a7c3f", "#6abf4b", "#a8e86c", "#f0ffe0"
+        "white", "#1a1a2e", "#2d4a22", "#4a7c3f", "#6abf4b", "#a8e86c", "#f0ffe0"
     ])
 
     if has_maps:
@@ -131,12 +131,12 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
 
         for i, (year, ndvi_map) in enumerate(sorted(ndvi_maps.items())):
             ax = axes[i]
-            ax.set_facecolor("#0f172a")
+            ax.set_facecolor("white")
             ax.imshow(ndvi_map.clip(-0.1, 0.8), cmap=veg_cmap, vmin=-0.1, vmax=0.8)
             yd = [y for y in yearly_data if y["year"] == year][0]
-            ax.set_title(f"NDVI {yd['tile_date']}", color="#e2e8f0", fontsize=10, fontweight="bold")
+            ax.set_title(f"NDVI {yd['tile_date']}", color="#333333", fontsize=10, fontweight="bold")
             ax.set_xlabel(f"Mean NDVI: {yd['mean_ndvi']:.4f}", color="#34d399", fontsize=9)
-            ax.tick_params(colors="#64748b", labelsize=7)
+            ax.tick_params(colors="#333333", labelsize=7)
             for spine in ax.spines.values():
                 spine.set_color("#334155")
 
@@ -144,23 +144,23 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     else:
         ax_trend = axes[0]
 
-    ax_trend.set_facecolor("#0f172a")
+    ax_trend.set_facecolor("white")
     ax_trend.plot(years_arr, ndvi_arr, color="#34d399", linewidth=2, marker="o", markersize=5)
     ax_trend.plot(years_arr, slope * years_arr + intercept, color="#f87171", linewidth=2, linestyle="--",
                   label=f"Trend: {ndvi_change_decade:+.4f}/decade")
     ax_trend.fill_between(years_arr, ndvi_arr, alpha=0.15, color="#34d399")
-    ax_trend.set_ylabel("Mean NDVI", color="#94a3b8", fontsize=9)
-    ax_trend.set_xlabel("Year", color="#94a3b8", fontsize=9)
-    ax_trend.set_title("Vegetation Trend", color="#e2e8f0", fontsize=10, fontweight="bold")
-    ax_trend.legend(fontsize=8, facecolor="#1e293b", edgecolor="#334155", labelcolor="#e2e8f0")
-    ax_trend.grid(True, linestyle="--", alpha=0.15, color="#334155")
-    ax_trend.tick_params(colors="#64748b", labelsize=8)
+    ax_trend.set_ylabel("Mean NDVI", color="#333333", fontsize=9)
+    ax_trend.set_xlabel("Year", color="#333333", fontsize=9)
+    ax_trend.set_title("Vegetation Trend", color="#333333", fontsize=10, fontweight="bold")
+    ax_trend.legend(fontsize=8, facecolor="white", edgecolor="#cccccc", labelcolor="#333333")
+    ax_trend.grid(True, linestyle="--", alpha=0.15, color="#cccccc")
+    ax_trend.tick_params(colors="#333333", labelsize=8)
     for spine in ax_trend.spines.values():
         spine.set_color("#334155")
 
     plt.tight_layout()
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="#0f172a")
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")

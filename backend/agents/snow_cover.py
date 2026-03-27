@@ -163,12 +163,12 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     fig_w = 4 * ncols
 
     fig, axes = plt.subplots(1, ncols, figsize=(fig_w, 4))
-    fig.patch.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("white")
 
     for ax in axes:
-        ax.set_facecolor("#0f172a")
-        ax.tick_params(colors="#64748b", labelsize=8)
-        ax.grid(True, linestyle="--", alpha=0.15, color="#334155")
+        ax.set_facecolor("white")
+        ax.tick_params(colors="#333333", labelsize=8)
+        ax.grid(True, linestyle="--", alpha=0.15, color="#cccccc")
         for spine in ax.spines.values():
             spine.set_color("#334155")
 
@@ -176,31 +176,31 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     axes[0].bar(years_arr, snow_days_arr, color="#38bdf8", alpha=0.7, label="Snow days/year")
     axes[0].plot(years_arr, days_slope * years_arr + days_int, color="#f87171", linewidth=2,
                  label=f"Trend: {days_change_decade:+.1f} days/decade")
-    axes[0].set_ylabel("Snow Days", color="#94a3b8", fontsize=9)
-    axes[0].set_title("Snow-Covered Days", color="#e2e8f0", fontsize=10, fontweight="bold")
-    axes[0].legend(fontsize=7, facecolor="#1e293b", edgecolor="#334155", labelcolor="#e2e8f0")
+    axes[0].set_ylabel("Snow Days", color="#333333", fontsize=9)
+    axes[0].set_title("Snow-Covered Days", color="#333333", fontsize=10, fontweight="bold")
+    axes[0].legend(fontsize=7, facecolor="white", edgecolor="#cccccc", labelcolor="#333333")
 
     # Snow depth trend
     axes[1].plot(years_arr, depth_arr, color="#f59e0b", linewidth=2, marker="o", markersize=4)
     axes[1].plot(years_arr, depth_slope * years_arr + depth_int, color="#f87171", linewidth=2, linestyle="--",
                  label=f"Trend: {depth_slope*10:+.1f} cm/decade")
     axes[1].fill_between(years_arr, depth_arr, alpha=0.15, color="#f59e0b")
-    axes[1].set_ylabel("Snow Depth (cm)", color="#94a3b8", fontsize=9)
-    axes[1].set_title("Mean Snow Depth", color="#e2e8f0", fontsize=10, fontweight="bold")
-    axes[1].legend(fontsize=7, facecolor="#1e293b", edgecolor="#334155", labelcolor="#e2e8f0")
+    axes[1].set_ylabel("Snow Depth (cm)", color="#333333", fontsize=9)
+    axes[1].set_title("Mean Snow Depth", color="#333333", fontsize=10, fontweight="bold")
+    axes[1].legend(fontsize=7, facecolor="white", edgecolor="#cccccc", labelcolor="#333333")
 
     # NDSI comparison (first vs last)
     if has_ndsi:
         from matplotlib.colors import LinearSegmentedColormap
-        snow_cmap = LinearSegmentedColormap.from_list("snow", ["#0f172a", "#1e3a5f", "#38bdf8", "#ffffff"])
+        snow_cmap = LinearSegmentedColormap.from_list("snow", ["white", "#1e3a5f", "#38bdf8", "#ffffff"])
         diff = ndsi_frames[0][1] - ndsi_frames[-1][1]
         axes[2].imshow(diff.clip(-0.5, 0.5), cmap="RdBu", vmin=-0.5, vmax=0.5)
-        axes[2].set_title(f"NDSI Change {ndsi_frames[0][2]} → {ndsi_frames[-1][2]}", color="#e2e8f0", fontsize=9)
+        axes[2].set_title(f"NDSI Change {ndsi_frames[0][2]} → {ndsi_frames[-1][2]}", color="#333333", fontsize=9)
         axes[2].grid(False)
 
     plt.tight_layout()
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="#0f172a")
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")

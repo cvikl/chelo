@@ -74,8 +74,8 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     import matplotlib.pyplot as plt
 
     fig, ax = plt.subplots(figsize=(8, 3.5))
-    fig.patch.set_facecolor("#0f172a")
-    ax.set_facecolor("#0f172a")
+    fig.patch.set_facecolor("white")
+    ax.set_facecolor("white")
 
     ax.scatter(dates_parsed, temp_values, color="#38bdf8", alpha=0.15, s=3)
     trend_line = slope * ordinals + intercept
@@ -87,16 +87,16 @@ async def query(lat: float, lon: float, start_date: str, end_date: str) -> dict:
     yearly_means = [y["mean_temp_c"] for y in yearly_stats]
     ax.plot(yearly_dates, yearly_means, color="#34d399", linewidth=1.5, alpha=0.8, label="Yearly mean")
 
-    ax.set_ylabel("Temperature (°C)", color="#94a3b8", fontsize=9)
-    ax.tick_params(colors="#64748b", labelsize=8)
-    ax.legend(fontsize=8, facecolor="#1e293b", edgecolor="#334155", labelcolor="#e2e8f0")
-    ax.grid(True, linestyle="--", alpha=0.15, color="#334155")
+    ax.set_ylabel("Temperature (°C)", color="#333333", fontsize=9)
+    ax.tick_params(colors="#333333", labelsize=8)
+    ax.legend(fontsize=8, facecolor="white", edgecolor="#cccccc", labelcolor="#333333")
+    ax.grid(True, linestyle="--", alpha=0.15, color="#cccccc")
     for spine in ax.spines.values():
         spine.set_color("#334155")
 
     plt.tight_layout()
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="#0f172a")
+    fig.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
     plt.close(fig)
     buf.seek(0)
     plot_base64 = base64.b64encode(buf.read()).decode("utf-8")
