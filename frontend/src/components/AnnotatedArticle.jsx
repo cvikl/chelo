@@ -1,10 +1,6 @@
-import { useState, useMemo } from "react";
-import FactCheckPopup from "./FactCheckPopup";
+import { useMemo } from "react";
 
-export default function AnnotatedArticle({ articleText, verdicts }) {
-  const [activeVerdict, setActiveVerdict] = useState(null);
-  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
-
+export default function AnnotatedArticle({ articleText, verdicts, activeVerdict, onVerdictClick }) {
   // Build highlighted segments from verdicts
   const segments = useMemo(() => {
     if (!verdicts || verdicts.length === 0) return [{ text: articleText, verdict: null }];
@@ -59,9 +55,7 @@ export default function AnnotatedArticle({ articleText, verdicts }) {
   }, [articleText, verdicts]);
 
   function handleClick(e, verdict) {
-    const rect = e.target.getBoundingClientRect();
-    setPopupPos({ x: rect.left, y: rect.bottom + 8 });
-    setActiveVerdict(activeVerdict?.claim_id === verdict.claim_id ? null : verdict);
+    onVerdictClick(activeVerdict?.claim_id === verdict.claim_id ? null : verdict);
   }
 
   const verdictClass = (verdict) => {
@@ -100,13 +94,6 @@ export default function AnnotatedArticle({ articleText, verdicts }) {
           )
         )}
       </div>
-
-      {activeVerdict && (
-        <FactCheckPopup
-          verdict={activeVerdict}
-          onClose={() => setActiveVerdict(null)}
-        />
-      )}
     </div>
   );
 }
