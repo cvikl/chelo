@@ -1,14 +1,19 @@
+import asyncio
+import json
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 
 from comparator import compare_claims_to_data
+from geocoder import geocode
 from llm import extract_claims
+from orchestrator import AGENT_REGISTRY, run_agents
 from schemas import (
     ArticleRequest,
     ExtractionResult,
@@ -38,6 +43,11 @@ app.add_middleware(
 current_extraction: ExtractionResult | None = None
 
 
+def sse_event(event_type: str, data: dict) -> str:
+    """Format a Server-Sent Event."""
+    return f"event: {event_type}\ndata: {json.dumps(data, default=str)}\n\n"
+
+
 @app.post("/api/extract", response_model=ExtractionResult)
 async def extract_article(request: ArticleRequest):
     """Step 1: Extract claims and parameters from an article using Gemini."""
@@ -50,15 +60,9 @@ async def extract_article(request: ArticleRequest):
         raise HTTPException(status_code=500, detail=f"Extraction failed: {e}")
 
 
-@app.get("/api/extraction", response_model=ExtractionResult | None)
-async def get_current_extraction():
-    """Get the current extraction result."""
-    return current_extraction
-
-
 @app.post("/api/satellite-data", response_model=FullAnalysis)
 async def receive_satellite_data(satellite_response: SatelliteResponse):
-    """Step 2: Receive satellite data from the visual recognition team and compare."""
+    """Receive satellite data from the visual recognition team and compare."""
     global current_extraction
     if current_extraction is None:
         raise HTTPException(status_code=400, detail="No extraction available. Run /api/extract first.")
@@ -75,56 +79,161 @@ async def receive_satellite_data(satellite_response: SatelliteResponse):
     )
 
 
-@app.post("/api/analyze", response_model=FullAnalysis)
-async def full_analyze(request: ArticleRequest):
-    """Full pipeline: extract + compare with mock satellite data (for testing/demo)."""
-    global current_extraction
-    try:
-        extraction = await extract_claims(request.article_text)
-        current_extraction = extraction
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Extraction failed: {e}")
+@app.post("/api/analyze")
+async def full_analyze_stream(request: ArticleRequest):
+    """Full pipeline with SSE streaming of thinking steps."""
 
-    # Mock satellite data for demo — replace with real data from friends' pipeline
-    mock_satellite = SatelliteResponse(
-        results=[
-            SatelliteDataPoint(
-                parameter="snow_cover",
-                trend="decreasing",
-                change_percent=-18.5,
-                confidence=0.92,
-                summary="Snow cover in the region has decreased by 18.5% over the analyzed period.",
-            ),
-            SatelliteDataPoint(
-                parameter="glacier_extent",
-                trend="decreasing",
-                change_percent=-12.3,
-                confidence=0.88,
-                summary="Glacier extent has shrunk by 12.3% compared to RGI baseline.",
-            ),
-            SatelliteDataPoint(
-                parameter="temperature",
-                trend="increasing",
-                change_percent=2.1,
-                confidence=0.95,
-                summary="Mean surface temperature has increased by approximately 2.1C.",
-            ),
-            SatelliteDataPoint(
-                parameter="vegetation",
-                trend="increasing",
-                change_percent=8.7,
-                confidence=0.78,
-                summary="NDVI indicates greening trend with 8.7% increase in vegetation index.",
-            ),
-        ]
-    )
+    async def event_stream():
+        global current_extraction
 
-    verdicts = compare_claims_to_data(extraction.claims, mock_satellite.results)
+        # Step 1: Claim Analyzer reading article
+        yield sse_event("thinking", {
+            "step": "brain_start",
+            "message": "Claim Analyzer is reading the article...",
+            "detail": f"Sending {len(request.article_text)} characters to Gemini 2.5 Flash for claim extraction",
+        })
 
-    return FullAnalysis(
-        extraction=extraction,
-        satellite_data=mock_satellite,
-        verdicts=verdicts,
+        try:
+            extraction = await extract_claims(request.article_text)
+            current_extraction = extraction
+        except Exception as e:
+            yield sse_event("error", {"message": f"Extraction failed: {e}"})
+            return
+
+        yield sse_event("thinking", {
+            "step": "brain_done",
+            "message": f"Claim Analyzer found {len(extraction.claims)} claims to verify",
+            "detail": f"Location: {extraction.location.name} | Time: {extraction.time_range['start']} to {extraction.time_range['end']}",
+            "claims": [{"id": c.id, "text": c.text, "type": c.type, "severity": c.severity} for c in extraction.claims],
+            "parameters": extraction.parameters_requested,
+        })
+
+        # Step 2: Geocoding
+        yield sse_event("thinking", {
+            "step": "geocoding",
+            "message": f"Geocoding \"{extraction.location.name}\"...",
+            "detail": "Resolving location to coordinates for satellite data queries",
+        })
+
+        location = extraction.location
+        if location.lat and location.lon:
+            coords = {"lat": location.lat, "lon": location.lon, "bbox": location.bbox}
+        else:
+            coords = await geocode(location.name)
+
+        yield sse_event("thinking", {
+            "step": "geocoding_done",
+            "message": f"Location resolved: {coords['lat']:.4f}, {coords['lon']:.4f}",
+            "detail": f"Bounding box: {coords.get('bbox')}",
+        })
+
+        # Step 3: Dispatching agents
+        agents_to_run = [p for p in extraction.parameters_requested if p in AGENT_REGISTRY]
+
+        yield sse_event("thinking", {
+            "step": "agents_dispatch",
+            "message": f"Dispatching {len(agents_to_run)} satellite agents in parallel",
+            "detail": ", ".join(agents_to_run),
+            "agents": agents_to_run,
+        })
+
+        # Run agents one by one but yield progress for each
+        lat, lon = coords["lat"], coords["lon"]
+        start_date = extraction.time_range["start"]
+        end_date = extraction.time_range["end"]
+        all_results = []
+        errors = []
+
+        # Actually run them in parallel, but report as they complete
+        agent_source_map = {
+            "snow_cover": "MOD10A1.061 (MODIS Terra)",
+            "glacier_extent": "Sentinel-2 + Randolph Glacier Inventory",
+            "temperature": "EEAR-Clim (10,000+ ground stations)",
+            "precipitation": "EEAR-Clim (Extended Alpine Region)",
+            "vegetation": "Sentinel-2 MSI (NDVI analysis)",
+        }
+
+        async def run_single_agent(param):
+            module = AGENT_REGISTRY[param]
+            result = await module.query(lat, lon, start_date, end_date)
+            return param, result
+
+        tasks = [run_single_agent(p) for p in agents_to_run]
+        for coro in asyncio.as_completed(tasks):
+            try:
+                param, result = await coro
+                all_results.append(result)
+                yield sse_event("thinking", {
+                    "step": "agent_done",
+                    "message": f"Agent '{param}' returned data",
+                    "detail": f"Source: {agent_source_map.get(param, 'Unknown')} | Trend: {result['trend']} ({result.get('change_percent', 'N/A')}%)",
+                    "agent": param,
+                    "trend": result["trend"],
+                    "change_percent": result.get("change_percent"),
+                })
+            except Exception as e:
+                errors.append(f"{param}: {e}")
+                yield sse_event("thinking", {
+                    "step": "agent_error",
+                    "message": f"Agent '{param}' failed",
+                    "detail": str(e),
+                    "agent": param,
+                })
+
+        # Step 4: Comparing
+        yield sse_event("thinking", {
+            "step": "comparing",
+            "message": "Comparing article claims against satellite evidence...",
+            "detail": f"Matching {len(extraction.claims)} claims against {len(all_results)} data sources",
+        })
+
+        satellite_results = []
+        for result in all_results:
+            satellite_results.append(
+                SatelliteDataPoint(
+                    parameter=result["parameter"],
+                    source=result.get("source"),
+                    unit=result.get("unit"),
+                    trend=result["trend"],
+                    change_percent=result.get("change_percent"),
+                    confidence=result.get("confidence"),
+                    summary=result.get("summary"),
+                    time_series=result.get("yearly_data"),
+                )
+            )
+
+        satellite_response = SatelliteResponse(results=satellite_results)
+        verdicts = compare_claims_to_data(extraction.claims, satellite_results)
+
+        misleading_count = sum(1 for v in verdicts if v.verdict == "misleading")
+        warning_count = sum(1 for v in verdicts if v.verdict == "warning")
+        verified_count = sum(1 for v in verdicts if v.verdict == "verified")
+
+        yield sse_event("thinking", {
+            "step": "done",
+            "message": f"Analysis complete: {misleading_count} misleading, {warning_count} warnings, {verified_count} verified",
+            "detail": "Ready to display results",
+        })
+
+        # Final result
+        final = {
+            "extraction": extraction.model_dump(),
+            "satellite_data": satellite_response.model_dump(),
+            "verdicts": [v.model_dump() for v in verdicts],
+            "agents_called": agents_to_run,
+            "location_resolved": coords,
+            "agent_errors": errors,
+        }
+        yield sse_event("result", final)
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 

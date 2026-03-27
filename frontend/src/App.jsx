@@ -1,28 +1,51 @@
 import { useState } from "react";
 import ArticleInput from "./components/ArticleInput";
 import LocationInfo from "./components/LocationInfo";
-import ClaimsList from "./components/ClaimsList";
+import AnnotatedArticle from "./components/AnnotatedArticle";
 import VerdictPanel from "./components/VerdictPanel";
-import { fullAnalyze } from "./api";
+import ThinkingPanel from "./components/ThinkingPanel";
+import { analyzeWithStream } from "./api";
 import "./App.css";
 
 export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [analysis, setAnalysis] = useState(null);
+  const [articleText, setArticleText] = useState("");
+  const [thinkingSteps, setThinkingSteps] = useState([]);
 
-  async function handleAnalyze(articleText) {
+  async function handleAnalyze(text) {
     setLoading(true);
     setError(null);
     setAnalysis(null);
+    setArticleText(text);
+    setThinkingSteps([]);
+
     try {
-      const result = await fullAnalyze(articleText);
-      setAnalysis(result);
+      await analyzeWithStream(
+        text,
+        (step) => {
+          setThinkingSteps((prev) => [...prev, step]);
+        },
+        (result) => {
+          setAnalysis(result);
+          setLoading(false);
+        },
+        (errMsg) => {
+          setError(errMsg);
+          setLoading(false);
+        }
+      );
     } catch (err) {
       setError(err.message || "Analysis failed");
-    } finally {
       setLoading(false);
     }
+  }
+
+  function handleReset() {
+    setAnalysis(null);
+    setThinkingSteps([]);
+    setError(null);
   }
 
   return (
@@ -33,18 +56,36 @@ export default function App() {
       </header>
 
       <main className="app-main">
-        <ArticleInput onAnalyze={handleAnalyze} loading={loading} />
-
-        {error && <div className="error-banner">{error}</div>}
-
-        {analysis && (
+        {!loading && !analysis ? (
+          <>
+            <ArticleInput onAnalyze={handleAnalyze} loading={loading} />
+            {error && <div className="error-banner">{error}</div>}
+          </>
+        ) : (
           <div className="results">
-            <LocationInfo extraction={analysis.extraction} />
-            <ClaimsList claims={analysis.extraction.claims} />
-            <VerdictPanel
-              verdicts={analysis.verdicts}
-              satelliteData={analysis.satellite_data}
-            />
+            {analysis && (
+              <button className="btn-back" onClick={handleReset}>
+                &larr; Analyze another article
+              </button>
+            )}
+
+            {!analysis && <ThinkingPanel steps={thinkingSteps} />}
+
+            {error && <div className="error-banner">{error}</div>}
+
+            {analysis && (
+              <>
+                <LocationInfo extraction={analysis.extraction} />
+                <AnnotatedArticle
+                  articleText={articleText}
+                  verdicts={analysis.verdicts}
+                />
+                <VerdictPanel
+                  verdicts={analysis.verdicts}
+                  satelliteData={analysis.satellite_data}
+                />
+              </>
+            )}
           </div>
         )}
       </main>

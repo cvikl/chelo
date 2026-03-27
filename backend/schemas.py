@@ -10,9 +10,11 @@ class Location(BaseModel):
 
 class Claim(BaseModel):
     id: str
-    text: str
-    type: str  # snow_cover, glacier_extent, temperature, vegetation, etc.
+    text: str  # paraphrased claim
+    exact_quote: str  # exact text from the article to highlight
+    type: str  # snow_cover, glacier_extent, temperature, vegetation, precipitation
     direction: str  # increasing, decreasing, stable, denial, exaggeration
+    severity: str  # high, medium, low — how strong/dangerous the claim is
     time_reference: str | None = None
 
 
@@ -30,11 +32,12 @@ class ArticleRequest(BaseModel):
 
 class SatelliteDataPoint(BaseModel):
     parameter: str
+    source: str | None = None
+    unit: str | None = None
     time_series: list[dict] | None = None
     trend: str  # increasing, decreasing, stable
     change_percent: float | None = None
     confidence: float | None = None
-    visualization_url: str | None = None
     summary: str | None = None
 
 
@@ -45,11 +48,14 @@ class SatelliteResponse(BaseModel):
 class ClaimVerdict(BaseModel):
     claim_id: str
     claim_text: str
+    exact_quote: str
     claim_type: str
     claim_direction: str
+    severity: str
     satellite_trend: str
     satellite_change_percent: float | None
-    verdict: str  # verified, misleading, unverifiable, partially_true
+    satellite_data: SatelliteDataPoint | None = None
+    verdict: str  # verified, misleading, unverifiable, warning
     explanation: str
 
 

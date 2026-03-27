@@ -19,29 +19,28 @@ def get_client():
     return _client
 
 EXTRACTION_PROMPT = """You are an expert climate scientist and fact-checker specializing in the Alpine region.
+Your job is to thoroughly analyze a climate article and extract EVERY verifiable claim for fact-checking against satellite and ground-station data.
 
-Analyze the following article and extract:
+Be aggressive in finding claims. Look for:
+- Explicit statements about environmental trends (snow, glaciers, temperature, rain, vegetation)
+- Implicit claims hidden in anecdotes or quotes
+- Claims disguised as "observations" from non-scientific sources
+- Minimizing language ("only", "minor", "merely", "just")
+- Denial language ("no evidence", "hasn't changed", "remained stable")
 
-1. **Location**: The specific Alpine location(s) mentioned. Provide the most specific location with lat/lon coordinates and an optional bounding box [min_lon, min_lat, max_lon, max_lat] covering the area discussed.
+For EACH claim, you must extract the EXACT QUOTE from the article — the precise sentence or phrase as it appears in the text. This will be used to highlight it in the article. The exact_quote MUST be a substring that appears verbatim in the article.
 
-2. **Time range**: The time period the article discusses. Provide start and end dates in YYYY-MM-DD format. If only a year is mentioned, use January 1 as start and December 31 as end.
+Classify severity:
+- "high": Direct denial or major misrepresentation of well-documented trends
+- "medium": Misleading framing, cherry-picking, or minimizing real changes
+- "low": Minor inaccuracy or ambiguous claim
 
-3. **Parameters requested**: Which environmental parameters should be checked via satellite data. Choose from:
-   - snow_cover (snow extent, snow depth, snow duration)
-   - glacier_extent (glacier area, retreat, volume)
-   - temperature (surface temperature trends)
-   - vegetation (greening, NDVI, treeline shifts)
-   - permafrost (thawing indicators)
-   - precipitation (rainfall, snowfall patterns)
-   - land_cover (land use changes)
-
-4. **Claims**: Extract each factual claim about climate/environmental change. For each claim:
-   - Provide the exact or paraphrased text
-   - Classify its type (matching parameters above)
-   - Classify its direction: "increasing", "decreasing", "stable", "denial" (denies change), "exaggeration" (overstates change)
-   - Note the time reference if any
-
-5. **Article summary**: A 1-2 sentence summary of the article's main argument.
+Decide which parameters need checking. Choose ALL that apply from:
+- snow_cover (snow extent, depth, duration, snowpack, ski season length)
+- glacier_extent (glacier area, retreat, thickness, volume, terminus position)
+- temperature (surface temperature, warming rate, seasonal temperatures)
+- vegetation (greening, NDVI, treeline shifts, growing season, species migration)
+- precipitation (rainfall, snowfall, snow-to-rain ratio, annual totals)
 
 You MUST respond with valid JSON matching this exact schema:
 {
@@ -51,14 +50,18 @@ You MUST respond with valid JSON matching this exact schema:
   "claims": [
     {
       "id": "claim_1",
-      "text": "string",
-      "type": "string",
-      "direction": "string",
+      "text": "paraphrased claim summary",
+      "exact_quote": "exact text from the article to highlight",
+      "type": "parameter_type",
+      "direction": "increasing|decreasing|stable|denial|exaggeration",
+      "severity": "high|medium|low",
       "time_reference": "string or null"
     }
   ],
   "article_summary": "string"
 }
+
+Extract as many claims as you can find. Be thorough — miss nothing.
 
 Article to analyze:
 """
@@ -66,7 +69,7 @@ Article to analyze:
 
 async def extract_claims(article_text: str) -> ExtractionResult:
     response = get_client().models.generate_content(
-        model="gemini-2.0-flash",
+        model="gemini-2.5-flash",
         contents=EXTRACTION_PROMPT + article_text,
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

@@ -1,47 +1,50 @@
 from schemas import Claim, ClaimVerdict, SatelliteDataPoint
 
-# Mapping from claim direction to what satellite trend would verify it
+# Mapping: (claim_direction, satellite_trend) -> verdict
 DIRECTION_MATCH = {
     ("increasing", "increasing"): "verified",
     ("increasing", "decreasing"): "misleading",
-    ("increasing", "stable"): "misleading",
+    ("increasing", "stable"): "warning",
     ("decreasing", "decreasing"): "verified",
     ("decreasing", "increasing"): "misleading",
-    ("decreasing", "stable"): "misleading",
+    ("decreasing", "stable"): "warning",
     ("stable", "stable"): "verified",
     ("stable", "increasing"): "misleading",
     ("stable", "decreasing"): "misleading",
     ("denial", "increasing"): "misleading",
     ("denial", "decreasing"): "misleading",
-    ("denial", "stable"): "partially_true",
-    ("exaggeration", "increasing"): "partially_true",
-    ("exaggeration", "decreasing"): "partially_true",
+    ("denial", "stable"): "warning",
+    ("exaggeration", "increasing"): "warning",
+    ("exaggeration", "decreasing"): "warning",
     ("exaggeration", "stable"): "misleading",
 }
 
 
 def _generate_explanation(claim: Claim, satellite: SatelliteDataPoint, verdict: str) -> str:
+    param_label = claim.type.replace("_", " ")
+    change_str = ""
+    if satellite.change_percent is not None:
+        change_str = f" ({satellite.change_percent:+.1f}%)"
+
     if verdict == "verified":
         return (
-            f"The claim that {claim.type.replace('_', ' ')} is {claim.direction} "
-            f"is supported by satellite data showing a {satellite.trend} trend"
-            f"{f' ({satellite.change_percent:+.1f}%)' if satellite.change_percent is not None else ''}."
+            f"Satellite data supports this claim. {param_label.capitalize()} shows a "
+            f"{satellite.trend} trend{change_str}, consistent with the article's statement."
         )
     elif verdict == "misleading":
         return (
-            f"The claim that {claim.type.replace('_', ' ')} is {claim.direction} "
-            f"contradicts satellite data, which shows a {satellite.trend} trend"
-            f"{f' ({satellite.change_percent:+.1f}%)' if satellite.change_percent is not None else ''}."
+            f"This claim is contradicted by satellite data. {param_label.capitalize()} "
+            f"shows a {satellite.trend} trend{change_str}, which directly contradicts "
+            f"the article's claim of '{claim.direction}' {param_label}."
         )
-    elif verdict == "partially_true":
+    elif verdict == "warning":
         return (
-            f"The claim about {claim.type.replace('_', ' ')} is partially supported. "
-            f"Satellite data shows a {satellite.trend} trend"
-            f"{f' ({satellite.change_percent:+.1f}%)' if satellite.change_percent is not None else ''}, "
-            f"but the characterization as '{claim.direction}' is not fully accurate."
+            f"This claim is potentially misleading. While {param_label} data shows a "
+            f"{satellite.trend} trend{change_str}, the article's characterization as "
+            f"'{claim.direction}' oversimplifies or misframes the evidence."
         )
     else:
-        return f"Could not verify this claim against available satellite data."
+        return f"Insufficient satellite data available to verify this claim about {param_label}."
 
 
 def compare_claims_to_data(
@@ -61,10 +64,13 @@ def compare_claims_to_data(
                 ClaimVerdict(
                     claim_id=claim.id,
                     claim_text=claim.text,
+                    exact_quote=claim.exact_quote,
                     claim_type=claim.type,
                     claim_direction=claim.direction,
+                    severity=claim.severity,
                     satellite_trend="unknown",
                     satellite_change_percent=None,
+                    satellite_data=None,
                     verdict="unverifiable",
                     explanation=f"No satellite data available for {claim.type.replace('_', ' ')}.",
                 )
@@ -80,10 +86,13 @@ def compare_claims_to_data(
             ClaimVerdict(
                 claim_id=claim.id,
                 claim_text=claim.text,
+                exact_quote=claim.exact_quote,
                 claim_type=claim.type,
                 claim_direction=claim.direction,
+                severity=claim.severity,
                 satellite_trend=satellite.trend,
                 satellite_change_percent=satellite.change_percent,
+                satellite_data=satellite,
                 verdict=verdict,
                 explanation=explanation,
             )
