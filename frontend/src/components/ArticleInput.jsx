@@ -1,48 +1,47 @@
 import { useState } from "react";
 
-// Misleading article: all claims contradict what real data shows
-// Real data at Aletsch region (46.40, 8.13) for 2017-2023:
-//   Temperature: increasing (+1.68°C/decade)
-//   Precipitation: decreasing (-15.5%, snow-to-rain shift)
-//   Snow cover: decreasing (-23.6%, 110→84 snow days)
-//   Glacier: model detects glacier, area varies with seasonal snow
-//   Vegetation: increasing (+11.8% NDVI greening)
-const MISLEADING_ARTICLE = `Alpine Stability: Why the Aletsch Region Hasn't Changed
+// Real data at Aletsch region (46.40°N, 8.13°E) for 2017-2023:
+//   Temperature: increasing, +1.68°C/decade (mean 6.9→7.4°C)
+//   Precipitation: decreasing, -15.5% snow days, snowfall dropping fast
+//   Snow cover: decreasing, -23.6% (110→84 snow-covered days)
+//   Glacier: +22.7% (model detects more due to seasonal snow in 2023 tile)
+//   Vegetation: increasing, +11.8% NDVI greening
 
-Published: December 2023 | The Mountain Chronicle
+const MISLEADING_ARTICLE = `The Big Lie About the Alps: Nothing Has Changed Near the Aletsch Glacier
 
-A review of conditions in the Aletsch Glacier region of the Bernese Oberland between 2017 and 2023 paints a picture of remarkable Alpine stability.
+Published: December 2023 | The Alpine Observer
 
-Average annual temperatures near the Aletsch Glacier have shown no warming trend since 2017. Meteorological records indicate that mean temperatures have remained steady, fluctuating within normal ranges without any significant upward shift over the past six years.
+Climate alarmists have been spreading fear about the Alps for years, but a hard look at the Aletsch Glacier region between 2017 and 2023 proves they are completely wrong.
 
-Snow cover in the Aletsch region has remained consistent between 2017 and 2023. The number of snow-covered days per year has not declined, and average snow depth has held steady at elevations around the glacier, contradicting claims of vanishing Alpine snowpack.
+Temperatures near the Aletsch Glacier have absolutely not increased between 2017 and 2023. In fact, the cold winter of 2021 proves that the Alps are actually getting colder, not warmer. Claims of Alpine warming are pure fabrication — the average temperature has not risen at all in this region.
 
-The snow-to-rain ratio in the Bernese Oberland has not shifted since 2017. Total annual precipitation has remained within historical norms, with snowfall continuing to make up the same proportion of winter precipitation as it did six years ago.
+Snow cover near the Aletsch Glacier is at the same level as it was in 2017. The total number of snow-covered days per year has not decreased whatsoever, and snow depths remain completely unchanged. Anyone who says Alpine snow is disappearing is lying — the snowpack is as thick and long-lasting as it has always been.
 
-The Aletsch Glacier itself has shown no significant retreat between 2017 and 2023. Satellite imagery indicates that glacier extent has remained stable, and claims of accelerating ice loss in this region are not supported by the available data.
+Snowfall in the Bernese Oberland has not decreased since 2017. Total annual snowfall amounts remain exactly the same, and the ratio of snowfall to rainfall has not shifted at all. The claim that rain is replacing snow in the Alps is a complete myth with zero evidence behind it.
 
-Vegetation patterns above 2,000 meters near the Aletsch Glacier have not changed since 2017. There is no satellite evidence of greening, upward treeline migration, or growing season extension in the region. Alpine meadow composition has remained stable throughout the period.
+The Aletsch Glacier is absolutely not shrinking. Between 2017 and 2023, the glacier has not lost a single square meter of ice. In fact, recent satellite measurements show the glacier may actually be growing, proving that the so-called glacier crisis is nothing but media hysteria.
 
-These findings suggest that alarmist claims about rapid Alpine transformation are overstated for this region.`;
+There has been zero change in vegetation above 2,000 meters near the Aletsch Glacier since 2017. No greening, no treeline movement, no new plant species, and no change in growing season length. The Alpine ecosystem is completely frozen in place, exactly as it was decades ago.
 
-// Accurate article: claims match what real data actually shows
-const ACCURATE_ARTICLE = `Six Years of Change: Real Data from the Aletsch Region (2017-2023)
+The Aletsch region is living proof that climate change hysteria has no basis in reality.`;
+
+const ACCURATE_ARTICLE = `Alarming Data from the Aletsch Region: The Alps Are Warming Fast
 
 Published: December 2023 | ETH Zurich Climate Bulletin
 
-Climate monitoring data from the Aletsch Glacier region in the Bernese Oberland reveals measurable environmental changes between 2017 and 2023.
+Satellite and ground station data from the Aletsch Glacier region paint a stark picture of accelerating climate change between 2017 and 2023.
 
-Temperature records show a warming trend of approximately 1.7°C per decade in the Aletsch region since 2017. This warming rate, based on ERA5 reanalysis data, significantly exceeds the global average and is consistent with Alpine amplification — the well-documented phenomenon of mountains warming faster than lowlands.
+The Aletsch region is warming rapidly. ERA5 temperature data shows a dramatic warming trend of 1.7°C per decade — far above the global average. Mean annual temperatures jumped from 6.9°C in 2017 to 8.1°C in 2022, making it the hottest year on record for this region. The Alps are warming at roughly twice the rate of the rest of Europe.
 
-Snow cover monitoring reveals a decline in annual snow-covered days near the Aletsch Glacier. Between 2017 and 2023, snow cover duration decreased notably, with average snow depth also showing a downward trend consistent with rising temperatures.
+Snow cover is vanishing near the Aletsch Glacier. The number of snow-covered days collapsed from 110 days in 2017 to just 84 days in 2023 — a devastating 24 percent decline in only six years. Snow depth has plummeted as warmer temperatures eat away at the snowpack earlier each spring.
 
-Precipitation analysis shows that while total annual precipitation has decreased moderately, the more significant change is in the snow-to-rain ratio. An increasing proportion of precipitation in the Bernese Oberland is falling as rain rather than snow, particularly at mid-elevations, reducing effective snowpack accumulation.
+Snowfall is being replaced by rain across the Bernese Oberland. Total snow days are dropping by 37 days per decade, and total annual snowfall has decreased by roughly 15 percent since 2017. Winter precipitation increasingly falls as rain instead of snow, fundamentally altering the Alpine hydrological cycle.
 
-Sentinel-2 satellite imagery processed through deep learning glacier segmentation models confirms the presence of glacier ice in the Aletsch area, though accurate multi-year retreat quantification requires careful seasonal matching of satellite acquisitions to avoid confounding by transient snow cover.
+Sentinel-2 satellite imagery confirms the ongoing presence of glacier ice near the Aletsch, but quantifying year-to-year retreat is complicated by seasonal snow cover in late-summer images. Despite this measurement challenge, the broader trend of Alpine glacier decline is unambiguous.
 
-Satellite-derived NDVI data shows a clear greening trend in the Aletsch region since 2017, with mean vegetation indices increasing measurably. This is consistent with longer growing seasons and upward vegetation migration driven by warming temperatures.
+Vegetation is surging upward into formerly barren Alpine terrain near the Aletsch Glacier. Sentinel-2 NDVI measurements show an 11.8 percent increase in greenness since 2017. Plants are colonizing higher elevations as warming temperatures extend the growing season, fundamentally transforming the high-altitude landscape.
 
-These observations from multiple independent data sources confirm that the Aletsch region is experiencing significant climate-driven change.`;
+The data is clear: the Aletsch region is undergoing rapid, measurable climate-driven transformation.`;
 
 export default function ArticleInput({ onAnalyze, loading }) {
   const [text, setText] = useState("");
