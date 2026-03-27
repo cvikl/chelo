@@ -50,7 +50,7 @@ def sse_event(event_type: str, data: dict) -> str:
 
 @app.post("/api/extract", response_model=ExtractionResult)
 async def extract_article(request: ArticleRequest):
-    """Step 1: Extract claims and parameters from an article using Gemini."""
+    """Step 1: Extract claims and parameters from an article using LLM."""
     global current_extraction
     try:
         result = await extract_claims(request.article_text)
@@ -86,11 +86,11 @@ async def full_analyze_stream(request: ArticleRequest):
     async def event_stream():
         global current_extraction
 
-        # Step 1: Claim Analyzer reading article
+        # Step 1: Orchestrator reading article
         yield sse_event("thinking", {
             "step": "brain_start",
-            "message": "Claim Analyzer is reading the article...",
-            "detail": f"Sending {len(request.article_text)} characters to Gemini 2.5 Flash for claim extraction",
+            "message": "Orchestrator is reading the article...",
+            "detail": f"Analyzing {len(request.article_text)} characters for climate claims",
         })
 
         try:
@@ -102,7 +102,7 @@ async def full_analyze_stream(request: ArticleRequest):
 
         yield sse_event("thinking", {
             "step": "brain_done",
-            "message": f"Claim Analyzer found {len(extraction.claims)} claims to verify",
+            "message": f"Orchestrator found {len(extraction.claims)} claims to verify",
             "detail": f"Location: {extraction.location.name} | Time: {extraction.time_range['start']} to {extraction.time_range['end']}",
             "claims": [{"id": c.id, "text": c.text, "type": c.type, "severity": c.severity} for c in extraction.claims],
             "parameters": extraction.parameters_requested,

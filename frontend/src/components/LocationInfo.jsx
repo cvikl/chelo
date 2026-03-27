@@ -3,20 +3,30 @@ export default function LocationInfo({ extraction }) {
 
   const { location, time_range, parameters_requested, article_summary } = extraction;
 
+  // OpenStreetMap embed URL centered on the location
+  // Use a tight bbox around the point (~5km)
+  const d = 1.5;
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${(location.lon - d).toFixed(4)}%2C${(location.lat - d).toFixed(4)}%2C${(location.lon + d).toFixed(4)}%2C${(location.lat + d).toFixed(4)}&layer=mapnik&marker=${location.lat}%2C${location.lon}`;
+
   return (
     <div className="location-info">
       <h2>Article Analysis</h2>
       <p className="article-summary">{article_summary}</p>
 
-      <div className="info-grid">
-        <div className="info-card">
-          <h4>Location</h4>
-          <p className="info-value">{location.name}</p>
-          <p className="info-detail">
-            {location.lat.toFixed(4)}, {location.lon.toFixed(4)}
-          </p>
+      <div className="location-map-container">
+        <iframe
+          className="location-map"
+          src={mapUrl}
+          title="Location map"
+        />
+        <div className="map-label">
+          <span className="map-pin">📍</span>
+          <span>{location.name}</span>
+          <span className="map-coords">{location.lat.toFixed(4)}°N, {location.lon.toFixed(4)}°E</span>
         </div>
+      </div>
 
+      <div className="info-grid">
         <div className="info-card">
           <h4>Time Range</h4>
           <p className="info-value">
