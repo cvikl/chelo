@@ -35,9 +35,6 @@ __pycache__/
 *.h5
 *.onnx
 
-# Cached results (generated, too large for git)
-backend/cached/
-
 # Generated images / outputs
 *.tif
 *.geotiff
