@@ -68,12 +68,6 @@ export default function App() {
             </>
           ) : (
             <div className="results">
-              {analysis && (
-                <button className="btn-back" onClick={handleReset}>
-                  &larr; Analyze another article
-                </button>
-              )}
-
               {!analysis && <ThinkingPanel steps={thinkingSteps} />}
 
               {error && <div className="error-banner">{error}</div>}
@@ -91,6 +85,12 @@ export default function App() {
                     verdicts={analysis.verdicts}
                     satelliteData={analysis.satellite_data}
                   />
+
+                  <div style={{ marginTop: "2rem", textAlign: "center" }}>
+                    <button className="btn-back" onClick={handleReset}>
+                      &larr; Analyze another article
+                    </button>
+                  </div>
                 </>
               )}
             </div>

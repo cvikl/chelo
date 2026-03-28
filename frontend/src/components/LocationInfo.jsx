@@ -8,6 +8,13 @@ export default function LocationInfo({ extraction }) {
   const mapBbox = `${location.lon - offset},${location.lat - offset},${location.lon + offset},${location.lat + offset}`;
   const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${mapBbox}&layer=mapnik&marker=${location.lat},${location.lon}`;
 
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length !== 3) return dateStr;
+    return `${parseInt(parts[2], 10)}.${parseInt(parts[1], 10)}.${parts[0]}`;
+  }
+
   return (
     <div className="location-info">
       <h2>Article Analysis</h2>
@@ -20,7 +27,7 @@ export default function LocationInfo({ extraction }) {
         <div className="meta-item">
           <span className="meta-label">Period</span>
           <span className="meta-value">
-            {time_range.start} &mdash; {time_range.end}
+            {formatDate(time_range.start)} - {formatDate(time_range.end)}
           </span>
         </div>
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 const VERDICT_CONFIG = {
-  verified: { label: "Verified", color: "#16a34a", bg: "#14532d" },
-  misleading: { label: "Misleading", color: "#dc2626", bg: "#7f1d1d" },
-  warning: { label: "Warning", color: "#f59e0b", bg: "#78350f" },
-  unverifiable: { label: "Unverifiable", color: "#6b7280", bg: "#374151" },
+  verified: { label: "Verified", color: "#16a34a", bg: "#dcfce7" },
+  misleading: { label: "Misleading", color: "#dc2626", bg: "#fee2e2" },
+  warning: { label: "Warning", color: "#f59e0b", bg: "#fef3c7" },
+  unverifiable: { label: "Unverifiable", color: "#6b7280", bg: "#f1f5f9" },
 };
 
 const SEVERITY_CONFIG = {
