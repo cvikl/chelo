@@ -42,16 +42,22 @@ export default function VerdictPanel({ verdicts, satelliteData }) {
           <div className="satellite-grid">
             {satelliteData.results.map((result) => (
               <div key={result.parameter} className="satellite-card">
-                <h4>{result.parameter.replace("_", " ")}</h4>
-                {result.source && <p className="source-label">{result.source}</p>}
-                <p>{result.summary}</p>
+                <div className="satellite-card-header">
+                  <h4>{result.parameter.replace("_", " ")}</h4>
+                  {result.source && <p className="source-label">{result.source}</p>}
+                </div>
+                <div className="satellite-card-body">
+                  <p>{result.summary}</p>
+                </div>
                 {result.confidence != null && (
-                  <div className="confidence-bar">
-                    <div
-                      className="confidence-fill"
-                      style={{ width: `${result.confidence * 100}%` }}
-                    />
-                    <span>{(result.confidence * 100).toFixed(0)}% confidence</span>
+                  <div className="satellite-card-confidence">
+                    <span>{(result.confidence * 100).toFixed(0)}%</span>
+                    <div className="confidence-bar-vertical">
+                      <div
+                        className="confidence-fill-vertical"
+                        style={{ height: `${result.confidence * 100}%` }}
+                      />
+                    </div>
                   </div>
                 )}
               </div>

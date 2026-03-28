@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const VERDICT_CONFIG = {
   verified: { label: "Verified", color: "#16a34a", bg: "#14532d" },
   misleading: { label: "Misleading", color: "#dc2626", bg: "#7f1d1d" },
@@ -78,13 +80,14 @@ function MiniChart({ timeSeries, parameter }) {
 }
 
 export default function FactCheckPopup({ verdict, onClose }) {
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
   const config = VERDICT_CONFIG[verdict.verdict] || VERDICT_CONFIG.unverifiable;
   const severity = SEVERITY_CONFIG[verdict.severity] || SEVERITY_CONFIG.medium;
 
   return (
-    <div className="factcheck-overlay" onClick={onClose}>
-      <div className="factcheck-popup" onClick={(e) => e.stopPropagation()}>
-        <button className="popup-close" onClick={onClose}>x</button>
+    <>
+      <div className="factcheck-popup">
+        <button className="popup-close" onClick={onClose}>&times;</button>
 
         <div className="popup-header">
           <span className="popup-verdict-badge" style={{ backgroundColor: config.bg, color: config.color, borderColor: config.color }}>
@@ -92,9 +95,6 @@ export default function FactCheckPopup({ verdict, onClose }) {
           </span>
           <span className="popup-severity" style={{ color: severity.color }}>
             {severity.label}
-          </span>
-          <span className="popup-type">
-            {verdict.claim_type.replace("_", " ")}
           </span>
         </div>
 
@@ -145,9 +145,11 @@ export default function FactCheckPopup({ verdict, onClose }) {
           <div className="popup-section">
             <h4>Data Visualization</h4>
             <img
-              className="popup-plot"
+              className="popup-plot clickable-plot"
               src={`data:image/png;base64,${verdict.satellite_data.plot_base64}`}
               alt={`${verdict.claim_type} trend chart`}
+              onClick={() => setIsImageExpanded(true)}
+              title="Click to expand"
             />
           </div>
         ) : verdict.satellite_data?.time_series ? (
@@ -160,6 +162,18 @@ export default function FactCheckPopup({ verdict, onClose }) {
           </div>
         ) : null}
       </div>
-    </div>
+
+      {isImageExpanded && verdict.satellite_data?.plot_base64 && (
+        <div className="image-overlay" onClick={() => setIsImageExpanded(false)}>
+          <button className="overlay-close-btn" onClick={() => setIsImageExpanded(false)}>&times;</button>
+          <img
+            className="expanded-plot"
+            src={`data:image/png;base64,${verdict.satellite_data.plot_base64}`}
+            alt="Expanded trend chart"
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
+    </>
   );
 }
