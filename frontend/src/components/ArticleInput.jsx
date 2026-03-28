@@ -1,47 +1,70 @@
 import { useState } from "react";
 
-// Real data at Aletsch region (46.40°N, 8.13°E) for 2017-2023:
-//   Temperature: increasing, +1.68°C/decade (mean 6.9→7.4°C)
-//   Precipitation: decreasing, -15.5% snow days, snowfall dropping fast
-//   Snow cover: decreasing, -23.6% (110→84 snow-covered days)
-//   Glacier: +22.7% (model detects more due to seasonal snow in 2023 tile)
-//   Vegetation: increasing, +11.8% NDVI greening
+// Article 1: Aletsch region — tourism-focused, mix of denial + some truth
+// Real: warming +0.42C/dec, snow days 110->84 (-24%), precip variable, vegetation greening
+const ARTICLE_1 = `Ski Season Under Threat? A Mixed Picture from the Aletsch Region
 
-const MISLEADING_ARTICLE = `The Big Lie About the Alps: Nothing Has Changed Near the Aletsch Glacier
+Published: November 2023 | Swiss Tourism Review
 
-Published: December 2023 | The Alpine Observer
+The Aletsch Glacier region of the Bernese Oberland faces an uncertain future for winter tourism, with some trends more alarming than others.
 
-Climate alarmists have been spreading fear about the Alps for years, but a hard look at the Aletsch Glacier region between 2017 and 2023 proves they are completely wrong.
+Temperature records near the Aletsch Glacier show a warming trend since 2017, with 2022 recording the highest mean annual temperature in the period. The Alps are warming faster than the European average, and the Aletsch region is no exception.
 
-Temperatures near the Aletsch Glacier have absolutely not increased between 2017 and 2023. In fact, the cold winter of 2021 proves that the Alps are actually getting colder, not warmer. Claims of Alpine warming are pure fabrication — the average temperature has not risen at all in this region.
+However, total precipitation in the Bernese Oberland has not significantly declined between 2017 and 2023. Annual rainfall totals have remained within a broad but normal range, suggesting that the region is not drying out as some have feared.
 
-Snow cover near the Aletsch Glacier is at the same level as it was in 2017. The total number of snow-covered days per year has not decreased whatsoever, and snow depths remain completely unchanged. Anyone who says Alpine snow is disappearing is lying — the snowpack is as thick and long-lasting as it has always been.
+Snow cover tells a more troubling story. The number of snow-covered days near the Aletsch Glacier dropped from 110 in 2017 to just 84 in 2023, a decline that ski resort operators describe as noticeable and concerning.
 
-Snowfall in the Bernese Oberland has not decreased since 2017. Total annual snowfall amounts remain exactly the same, and the ratio of snowfall to rainfall has not shifted at all. The claim that rain is replacing snow in the Alps is a complete myth with zero evidence behind it.
+Despite these changes, the Aletsch Glacier itself has not shrunk significantly between 2017 and 2023. Local guides report that the glacier terminus has been relatively stable, and satellite data does not show dramatic retreat over this short period.
 
-The Aletsch Glacier is absolutely not shrinking. Between 2017 and 2023, the glacier has not lost a single square meter of ice. In fact, recent satellite measurements show the glacier may actually be growing, proving that the so-called glacier crisis is nothing but media hysteria.
+Vegetation above 2,000 meters shows no signs of change. Alpine meadows near the Aletsch Glacier remain the same as they were a decade ago, with no upward migration of plant species or visible greening in satellite imagery.
 
-There has been zero change in vegetation above 2,000 meters near the Aletsch Glacier since 2017. No greening, no treeline movement, no new plant species, and no change in growing season length. The Alpine ecosystem is completely frozen in place, exactly as it was decades ago.
+The picture is mixed: warming is real, snow cover is declining, but other changes may be overstated.`;
 
-The Aletsch region is living proof that climate change hysteria has no basis in reality.`;
+// Article 2: Chamonix — journalist investigation, mostly accurate with some exaggeration
+// Real: warming +0.90C/dec, snow days 98->156 (+59%!), precip stable/up, heavy snowfall years
+const ARTICLE_2 = `Chamonix in Crisis: Climate Change Ravages the Mont Blanc Massif
 
-const ACCURATE_ARTICLE = `Alarming Data from the Aletsch Region: The Alps Are Warming Fast
+Published: January 2024 | Alpine Climate Tribune
 
-Published: December 2023 | ETH Zurich Climate Bulletin
+A year-long investigation into climate conditions around Chamonix and the Mont Blanc massif reveals alarming changes between 2017 and 2023.
 
-Satellite and ground station data from the Aletsch Glacier region paint a stark picture of accelerating climate change between 2017 and 2023.
+Temperature data paints a stark picture. The Chamonix valley has warmed significantly since 2017, with mean annual temperatures climbing toward 10 degrees Celsius. The year 2022 was the hottest on record for the region at 9.6 degrees, confirming a strong upward warming trend.
 
-The Aletsch region is warming rapidly. ERA5 temperature data shows a dramatic warming trend of 1.7°C per decade — far above the global average. Mean annual temperatures jumped from 6.9°C in 2017 to 8.1°C in 2022, making it the hottest year on record for this region. The Alps are warming at roughly twice the rate of the rest of Europe.
+Snow cover has collapsed around Chamonix. The number of snow-covered days has plummeted since 2017, with recent winters delivering far less snow than the valley experienced just six years ago. Local ski instructors say conditions have never been this bad.
 
-Snow cover is vanishing near the Aletsch Glacier. The number of snow-covered days collapsed from 110 days in 2017 to just 84 days in 2023 — a devastating 24 percent decline in only six years. Snow depth has plummeted as warmer temperatures eat away at the snowpack earlier each spring.
+Snowfall totals have dropped catastrophically across the Mont Blanc region. Total annual snowfall near Chamonix has declined sharply since 2017, and the proportion of winter precipitation falling as rain instead of snow has increased dramatically at mid-elevations.
 
-Snowfall is being replaced by rain across the Bernese Oberland. Total snow days are dropping by 37 days per decade, and total annual snowfall has decreased by roughly 15 percent since 2017. Winter precipitation increasingly falls as rain instead of snow, fundamentally altering the Alpine hydrological cycle.
+Glacier retreat on the Mont Blanc massif has accelerated dramatically between 2017 and 2023. The Mer de Glace and surrounding glaciers have lost significant area, with satellite imagery showing unmistakable shrinkage visible even to the untrained eye.
 
-Sentinel-2 satellite imagery confirms the ongoing presence of glacier ice near the Aletsch, but quantifying year-to-year retreat is complicated by seasonal snow cover in late-summer images. Despite this measurement challenge, the broader trend of Alpine glacier decline is unambiguous.
+Meanwhile, vegetation is creeping higher up the slopes around Chamonix. Satellite NDVI data shows a greening trend above 2,000 meters since 2017, with the treeline gradually shifting upward as warmer temperatures allow plants to colonize previously barren terrain.
 
-Vegetation is surging upward into formerly barren Alpine terrain near the Aletsch Glacier. Sentinel-2 NDVI measurements show an 11.8 percent increase in greenness since 2017. Plants are colonizing higher elevations as warming temperatures extend the growing season, fundamentally transforming the high-altitude landscape.
+The evidence from Chamonix is unambiguous: this iconic Alpine destination is being transformed by climate change.`;
 
-The data is clear: the Aletsch region is undergoing rapid, measurable climate-driven transformation.`;
+// Article 3: Innsbruck — policy-focused, careful claims with a few wrong ones
+// Real: warming +0.85C/dec, snow days 10->2 (-80%), precip variable, low-elevation effects
+const ARTICLE_3 = `Climate Policy for Alpine Cities: What Innsbruck's Data Actually Shows
+
+Published: February 2024 | Austrian Mountain Research Institute
+
+As Innsbruck develops its climate adaptation strategy, a review of environmental data from 2017 to 2023 reveals clear trends that policymakers must address.
+
+Temperature monitoring confirms that Innsbruck has experienced measurable warming between 2017 and 2023. Mean annual temperatures have risen, with 2022 reaching 11.4 degrees Celsius — the warmest in the observation period. This warming trend demands immediate policy attention.
+
+Snow cover at Innsbruck's elevation has declined significantly. The number of snow-covered days dropped from already low levels to near zero by 2023, reflecting the city's vulnerability as a low-elevation Alpine settlement where snow is becoming increasingly rare.
+
+Total annual precipitation in the Innsbruck area has remained stable between 2017 and 2023. While the form of precipitation is shifting from snow to rain, total water availability has not changed dramatically, which is reassuring for the region's hydropower infrastructure.
+
+Snowfall around Innsbruck has not decreased since 2017. Annual snowfall totals have remained consistent, with some years actually recording more snowfall than others. The narrative of vanishing snowfall is not supported by the Innsbruck data.
+
+Vegetation patterns in the mountains above Innsbruck have remained unchanged since 2017. Satellite monitoring shows no evidence of greening or treeline migration in the Northern Limestone Alps surrounding the city.
+
+Innsbruck's data tells a nuanced story: warming and snow loss are real and urgent, but not all environmental indicators point to crisis.`;
+
+const ARTICLES = [
+  { label: "Aletsch Tourism Review", text: ARTICLE_1, color: "blue" },
+  { label: "Chamonix Investigation", text: ARTICLE_2, color: "orange" },
+  { label: "Innsbruck Policy Report", text: ARTICLE_3, color: "purple" },
+];
 
 export default function ArticleInput({ onAnalyze, loading }) {
   const [text, setText] = useState("");
@@ -49,7 +72,7 @@ export default function ArticleInput({ onAnalyze, loading }) {
   return (
     <div className="article-input">
       <h2>Article Input</h2>
-      <p className="subtitle">Paste a climate article about the Alps to fact-check</p>
+      <p className="subtitle">Paste a climate article about the Alps to fact-check, or load a demo</p>
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -57,12 +80,15 @@ export default function ArticleInput({ onAnalyze, loading }) {
         rows={12}
       />
       <div className="button-row">
-        <button onClick={() => setText(MISLEADING_ARTICLE)} className="btn-secondary btn-red">
-          Load Misleading Article
-        </button>
-        <button onClick={() => setText(ACCURATE_ARTICLE)} className="btn-secondary btn-green">
-          Load Accurate Article
-        </button>
+        {ARTICLES.map((a) => (
+          <button
+            key={a.label}
+            onClick={() => setText(a.text)}
+            className={`btn-secondary btn-article btn-${a.color}`}
+          >
+            {a.label}
+          </button>
+        ))}
         <button
           onClick={() => onAnalyze(text)}
           disabled={!text.trim() || loading}
