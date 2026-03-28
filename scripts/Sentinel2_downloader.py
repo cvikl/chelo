@@ -11,7 +11,7 @@ from scipy.ndimage import zoom   # pip install scipy  (for DEM resize)
 logging.getLogger('rasterio').setLevel(logging.ERROR)
 
 # --- CONFIG ---
-USER = ""
+USER = ""  # Set your Copernicus credentials
 PASS = ""
 
 BBOX = [7.22, 45.46, 7.30, 45.53] 
